@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #2e1065;
+  color: #fff;
+  font-family: 'Fredoka', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Igra je full-screen tap-fest: gasimo scroll bounce, dupli-tap zoom i plavi highlight. */
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Sprite-ovi se ne smiju "vući" po ekranu na mobilnom. */
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
