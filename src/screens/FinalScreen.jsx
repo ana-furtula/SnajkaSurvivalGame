@@ -83,10 +83,10 @@ export default function FinalScreen({ score, stats, onReplay }) {
 
         <div className="rounded-2xl bg-black/25 px-4 py-2 text-left">
           <StatRow emoji="👨" label="Matija bonkovan" value={stats.matija} />
-          <StatRow emoji="🐶" label="Maltezer pomažen" value={stats.maltezer} />
+          <StatRow emoji="🐶" label="Nićko pomažen" value={stats.maltezer} />
           <StatRow emoji="🍕" label="Hrana spašena" value={stats.hrana} />
           <StatRow emoji="⭐" label="Želje pogođene" value={stats.zelja} />
-          <StatRow emoji="🍷" label="Vino diralo (opa!)" value={stats.vino} />
+          <StatRow emoji="🍷" label="Vino popijeno" value={stats.vino} />
           <StatRow emoji="👨‍🦱" label="Filip nadmudren" value={stats.filipDobar} />
           <StatRow emoji="🤡" label="Nasjela na Filipa" value={stats.filipLos} />
           <StatRow emoji="👩" label="Ana izbjegnuta" value={stats.anaIzbjegnuta} />

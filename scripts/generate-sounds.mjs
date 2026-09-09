@@ -543,14 +543,15 @@ function finalFanfare() {
 
 // --- pokretanje ---------------------------------------------------------------
 
+// Funkcije malteseAv() i foodNjam() namjerno NISU u ovoj listi — zamijenjene su
+// pravim snimcima. Ostavljene su kao primjeri kako se speak() koristi; dodaj im
+// red ovdje ako ikad zatreba sintetička verzija.
 const SOUNDS = {
   // Udarac — cartoon varijanta (glasovni jauci su pravi snimci, scream*.mp3)
   'bonk.wav': bonk,
-  // Pas — cijuk i lavež
+  // Pas — cijuk (dahtanje je pravi snimak, maltese-panting.mp3)
   'maltese.wav': maltese,
-  'maltese-av.wav': malteseAv,
-  // Hrana — glasovni "MMM NJAM" i stari "chomp" kao rezerva
-  'food-njam.wav': foodNjam,
+  // Hrana — "chomp" kao rezerva ("MMM NJAM" je pravi snimak, food-njam.mp3)
   'food-chomp.wav': food,
   'wine-fail.wav': wineFail,
   'filip-appear.wav': filipAppear,

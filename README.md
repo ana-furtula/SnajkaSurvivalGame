@@ -1,7 +1,7 @@
 # 💍 Misija: Preživjeti porodicu
 
 Mobilna-first web igrica (whack-a-mole) — poklon za snajku. Otvara se skeniranjem QR koda,
-7 nivoa, jedno sveto pravilo (ne diraj Anu) i gomila porodičnih fora.
+6 nivoa, jedno sveto pravilo (ne diraj Anu) i gomila porodičnih fora.
 
 **Stack:** Vite + React + Tailwind CSS (bez servera, bez baze — čisto statički build za GitHub Pages).
 
@@ -71,7 +71,7 @@ u sredini kadra. Slike manje od ~250 px izgledaju mutno na telefonu.
 | 👩 Ana | **KRAJ IGRE** | klik = odmah Game Over, igra kreće ispočetka |
 
 **Filipove fore** (`FILIP_LINES` u [src/config.js](src/config.js) — bira se jedna nasumično
-pri svakom pojavljivanju, uvodi se od nivoa 5):
+pri svakom pojavljivanju, uvodi se od nivoa 4):
 
 | Linija | `effect` | Šta radi |
 |---|---|---|
@@ -88,7 +88,7 @@ Bonus za „lijevo" namjerno ne važi za vino ni Anu (`LEFT_BONUS_TYPES` u
 
 **Ana = kraj igre.** Nema života, nema druge šanse: klik na Anu odmah vodi na Game Over
 ekran, a dugme "🔁 OD POČETKA" vraća igru na nivo 1 sa skorom 0. Na nivoima gdje se Ana
-pojavljuje (6 i 7) u HUD-u stalno stoji crveno upozorenje "👩 NE KLIKĆI ANU!".
+pojavljuje (5 i 6) u HUD-u stalno stoji crveno upozorenje "👩 NE KLIKĆI ANU!".
 
 ---
 
@@ -103,7 +103,7 @@ public/sounds/bonk.wav            # udarac: cartoon tresak          ┘
 public/sounds/maltese-panting.mp3 # pas: dahtanje (snimak)          ┐
 public/sounds/maltese.wav         # pas: veselo cijukanje           ├ bira se nasumično
 public/sounds/maltese-av.wav      # pas: sintetičko "AV AV"         ┘
-public/sounds/food-njam.wav       # hrana: "MMM NJAM!"
+public/sounds/food-njam.mp3       # hrana: "MMM NJAM!"
 public/sounds/food-chomp.wav      # hrana: mljackanje (nije aktivno, vidi dolje)
 public/sounds/wine-fail.wav       # vino (buzzer, dva kratka brujanja)
 public/sounds/filip-appear.wav    # Filip se pojavio (boing)
@@ -117,7 +117,7 @@ svakom puštanju bira nasumična varijanta, isto kao slike likova:
 
 ```js
 bonk: assets(['/sounds/scream1.mp3', ..., '/sounds/bonk.wav']),
-hrana: assets(['/sounds/food-njam.wav']),   // dodaj '/sounds/food-chomp.wav' ako želiš i mljackanje
+hrana: assets(['/sounds/food-njam.mp3']),   // dodaj '/sounds/food-chomp.wav' ako želiš i mljackanje
 ```
 
 Ne sviđa ti se neka varijanta? Obriši joj red iz niza — ne moraš brisati fajl.
@@ -186,7 +186,7 @@ Sve je u [src/config.js](src/config.js):
 - `TITLES` — pragovi skora za titule na kraju
 - `LEVEL_COMPLETE_MESSAGES`, `FINAL_MESSAGE` — tekstovi
 
-Ako želiš kraću igru — samo obriši nivoe iz `LEVELS` (kod nigdje ne pretpostavlja broj 7).
+Ako želiš kraću igru — samo obriši nivoe iz `LEVELS` (kod nigdje ne pretpostavlja njihov broj).
 
 ---
 

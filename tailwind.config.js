@@ -17,6 +17,13 @@ export default {
           '35%': { transform: 'scale(1.45) rotate(10deg)' },
           '100%': { transform: 'scale(0) rotate(-25deg)', opacity: '0' },
         },
+        // Vijenac zvjezdica koji se zavrti oko Matijine glave i razleti.
+        starburst: {
+          '0%': { transform: 'rotate(0deg) scale(0.35)', opacity: '0' },
+          '25%': { transform: 'rotate(60deg) scale(1)', opacity: '1' },
+          '70%': { transform: 'rotate(160deg) scale(1.15)', opacity: '1' },
+          '100%': { transform: 'rotate(230deg) scale(1.5)', opacity: '0' },
+        },
         sink: {
           '0%': { transform: 'scale(1) translateY(0)', opacity: '1' },
           '100%': { transform: 'scale(0.45) translateY(14px)', opacity: '0' },
@@ -55,6 +62,7 @@ export default {
         pop: 'pop 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both',
         bonk: 'bonk 320ms ease-in forwards',
         sink: 'sink 260ms ease-in forwards',
+        starburst: 'starburst 800ms ease-out forwards',
         floatUp: 'floatUp 1800ms ease-out forwards',
         drain: 'drain linear forwards',
         flashOut: 'flashOut 1600ms ease-out forwards',

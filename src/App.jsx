@@ -8,6 +8,7 @@ import Hud from './components/Hud.jsx';
 import MuteButton from './components/MuteButton.jsx';
 import Entity from './components/Entity.jsx';
 import FloatingText from './components/FloatingText.jsx';
+import StarBurst from './components/StarBurst.jsx';
 import TitleScreen from './screens/TitleScreen.jsx';
 import LevelCompleteScreen from './screens/LevelCompleteScreen.jsx';
 import GameOverScreen from './screens/GameOverScreen.jsx';
@@ -31,6 +32,7 @@ const LEFT_BONUS_TYPES = ['matija', 'hrana', 'maltezer'];
 const BONK_ANIMATION_MS = 320; // koliko traje animacija nestajanja pri kliku
 const FADE_MS = 260; // koliko traje "tiho" nestajanje kad element istekne
 const FLOAT_MS = 1800; // koliko lebdeća poruka stoji na ekranu (mora se stići pročitati)
+const STARS_MS = 800; // trajanje vijenca zvjezdica oko Matijine glave
 const BANNER_MS = 1900; // koliko velika poruka preko sredine stoji na ekranu
 
 export default function App() {
@@ -44,6 +46,7 @@ export default function App() {
 
   const [entities, setEntities] = useState([]);
   const [floats, setFloats] = useState([]);
+  const [stars, setStars] = useState([]); // vijenci zvjezdica na mjestu udarca
   const [craving, setCraving] = useState(null);
   const [cravingId, setCravingId] = useState(0); // raste pri svakoj novoj želji
   const [timeLeft, setTimeLeft] = useState(0);
@@ -101,6 +104,16 @@ export default function App() {
     [later]
   );
 
+  /** Zvjezdice oko glave — samo za Matiju, na mjestu udarca. */
+  const showStars = useCallback(
+    (x, y) => {
+      const id = nextId();
+      setStars((prev) => [...prev.slice(-3), { id, x, y }]);
+      later(() => setStars((prev) => prev.filter((s) => s.id !== id)), STARS_MS);
+    },
+    [later]
+  );
+
   const showBanner = useCallback(
     (text, tone = 'bad', ms = BANNER_MS) => {
       // Svaka poruka nosi svoj id, pa tajmer stare poruke ne može ugasiti novu.
@@ -132,6 +145,7 @@ export default function App() {
       entitiesRef.current = [];
       setEntities([]);
       setFloats([]);
+      setStars([]);
       setBanner(null);
       setBonks(0);
       setHurt(false);
@@ -357,6 +371,7 @@ export default function App() {
           bump(SCORES.matija, 'matija');
           setBonks((b) => b + 1);
           playSound('bonk');
+          showStars(x, y);
           showFloat(x, y, `💥 BONK! +${SCORES.matija}`, 'good');
           break;
 
@@ -367,19 +382,23 @@ export default function App() {
           break;
 
         case 'hrana': {
-          playSound('hrana');
           const wish = cravingRef.current;
           if (wish && level.hasCravings) {
             if (entity.food === wish.key) {
               bump(SCORES.hranaZelja, 'zelja');
               setStats((st) => ({ ...st, hrana: st.hrana + 1 }));
+              playSound('hrana');
               showFloat(x, y, `⭐ BAŠ TO! +${SCORES.hranaZelja}`, 'great');
             } else {
+              // Pogrešna hrana dok je želja aktivna — poseban "promašaj" zvuk.
               bump(SCORES.hranaPogresna, null);
+              playSound('hranaPogresna');
               showFloat(x, y, `😒 Nije to. ${SCORES.hranaPogresna}`, 'bad');
             }
           } else {
+            // Nivo bez želja — svaka hrana je dobra hrana.
             bump(SCORES.hrana, 'hrana');
+            playSound('hrana');
             showFloat(x, y, `😋 NJAM! +${SCORES.hrana}`, 'good');
           }
           break;
@@ -414,7 +433,7 @@ export default function App() {
           break;
       }
     },
-    [screen, level, updateEntities, later, bump, anaGameOver, showFloat, showBanner]
+    [screen, level, updateEntities, later, bump, anaGameOver, showFloat, showStars, showBanner]
   );
 
   // ------------------------------------------------------------------
@@ -491,6 +510,10 @@ export default function App() {
       <main className="relative m-3 flex-1 overflow-hidden rounded-3xl bg-black/25 ring-1 ring-white/15">
         {entities.map((entity) => (
           <Entity key={entity.id} entity={entity} onHit={handleHit} />
+        ))}
+
+        {stars.map((burst) => (
+          <StarBurst key={burst.id} x={burst.x} y={burst.y} />
         ))}
 
         {floats.map((item) => (
