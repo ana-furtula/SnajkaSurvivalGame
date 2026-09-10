@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "deploy": "npm run build && gh-pages -d dist",
-    "sounds": "node scripts/generate-sounds.mjs"
+    "sounds": "node scripts/generate-sounds.mjs",
+    "check": "node scripts/check-tutorials.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.3",

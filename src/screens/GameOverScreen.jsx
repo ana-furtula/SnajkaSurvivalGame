@@ -21,10 +21,13 @@ export default function GameOverScreen({ operation, score, onRestart }) {
 
       <div className="flex max-w-xs flex-col gap-1">
         <p className="font-ui text-base font-bold uppercase tracking-wide text-burgundy">
-          Kliknula si Anu.
+          Đe baš Anu.
         </p>
         <p className="text-sm leading-snug text-ink/75">
-          A lijepo smo ti rekli: <strong>NE DIRAJ ANU. 😂</strong>
+          Od svih ljudi u ovoj porodici — ti si našla Anu da diraš.
+        </p>
+        <p className="text-sm leading-snug text-ink/50">
+          Druženje s Anom je, do daljnjeg, pod znakom pitanja...
         </p>
       </div>
 

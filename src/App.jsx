@@ -30,16 +30,23 @@ const EMPTY_STATS = {
   nicko: 0,
   cravingsHit: 0,
   vino: 0,
-  filipTrusted: 0,
-  filipCaught: 0,
+  filipTrusted: 0, // poslušala ga je i bio je u pravu (nosi bonus)
+  filipCaught: 0, // lagao je, ali si ipak našla Matiju
+  filipFooled: 0, // lagao je i uspio — poslala te je na pogrešnu stranu
 };
+
+// Filipove izjave se biraju po ulozi, ne iz izmiješane gomile.
+const DIRECTION_LINES = FILIP_LINES.filter((l) => l.kind === 'smjer');
+const JOKE_LINES = FILIP_LINES.filter((l) => l.kind !== 'smjer');
 
 const emptyRun = () => ({
   startScore: 0,
   bonks: 0,
   cravingsHit: 0,
-  filipTruths: 0,
-  filipLies: 0,
+  filipTruths: 0, // koliko puta je Filip rekao istinu
+  filipLies: 0, // koliko puta je slagao
+  filipCaught: 0, // slagao, a ti si ga svejedno provalila
+  filipFooled: 0, // slagao i uspio — otišla si gdje te je poslao
   bestCombo: 0,
 });
 
@@ -126,7 +133,6 @@ export default function App() {
   const entitiesRef = useRef([]);
   const cravingRef = useRef(null);
   const pendingCravingRef = useRef(null); // garantuje da se željena hrana pojavi
-  const filipClaimRef = useRef(null); // aktivna Filipova tvrdnja o smjeru
   const bannerIdRef = useRef(0);
   const endedRef = useRef(false);
   const endingRef = useRef(false);
@@ -257,7 +263,6 @@ export default function App() {
     setCombo(0);
 
     runRef.current = { ...emptyRun(), startScore: scoreRef.current };
-    filipClaimRef.current = null;
     pendingCravingRef.current = null;
     cravingRef.current = null;
     nearMissAtRef.current = 0;
@@ -322,10 +327,21 @@ export default function App() {
 
     /** Filipova izjava + posljedice na polju. */
     const spawnFilip = (alive, now, lifetime, anaInPlay) => {
-      const line =
-        anaInPlay && Math.random() < 0.35 ? randomFrom(FILIP_ANA_LINES) : randomFrom(FILIP_LINES);
-
       playSound('filip');
+
+      // Izjava se bira po ulozi, a ne iz jedne izmiješane gomile: inače bi
+      // udio stvarnih tvrdnji zavisio od toga koliko šala ima u nizu, pa bi
+      // se u operaciji koja je o Filipu mehanika jedva pojavljivala.
+      const wantsClaim = DIRECTION_LINES.length > 0 && Math.random() < (op.filipClaimChance ?? 0.4);
+
+      let line;
+      if (wantsClaim) {
+        line = randomFrom(DIRECTION_LINES);
+      } else if (anaInPlay && Math.random() < 0.4) {
+        line = randomFrom(FILIP_ANA_LINES);
+      } else {
+        line = randomFrom(JOKE_LINES.length ? JOKE_LINES : FILIP_LINES);
+      }
 
       if (line.kind !== 'smjer') {
         return [createEntity('filip', { existing: alive, now, lifetime, line })];
@@ -344,17 +360,21 @@ export default function App() {
         line,
       });
 
-      const matija = createEntity('matija', {
-        existing: [...alive, filip],
-        now,
-        lifetime: lifetime + 300,
-        side: matijaSide,
-      });
-
-      filipClaimRef.current = {
-        truth,
-        matijaId: matija.id,
-        until: matija.expiresAt,
+      // Tvrdnja se kači na samog Matiju, a ne na jedan zajednički ref:
+      // ako se drugi Filip pojavi prije nego prvi istekne, novi zahtjev bi
+      // pregazio stari i ishod prvog se ne bi izbrojao.
+      const matija = {
+        ...createEntity('matija', {
+          existing: [...alive, filip],
+          now,
+          lifetime: lifetime + 300,
+          side: matijaSide,
+        }),
+        claim: {
+          truth,
+          claimedSide: line.side, // strana na koju te je poslao
+          counted: false, // ishod se broji najviše jednom
+        },
       };
 
       if (truth) runRef.current.filipTruths += 1;
@@ -438,6 +458,7 @@ export default function App() {
               comboRef.current = 0;
               setCombo(0);
             }
+
             return { ...e, expiring: true, line: null, highlight: false };
           });
 
@@ -511,9 +532,32 @@ export default function App() {
     }
   }, []);
 
+  /**
+   * "Preveslao te je" se broji samo ako postoji dokaz da si ga POSLUŠALA:
+   * odigrala si na strani na koju te je poslao, a on je lagao.
+   * Ignorisati Filipa nije isto što i nasjesti mu, pa se puko isticanje
+   * njegovog Matije namjerno NE broji.
+   */
+  const noteFooledIfFollowed = useCallback((x, ignoreId) => {
+    const lying = entitiesRef.current.find(
+      (e) => e.claim && !e.claim.truth && !e.claim.counted && !e.dying && !e.expiring
+    );
+    if (!lying || lying.id === ignoreId) return;
+
+    const onClaimedSide = lying.claim.claimedSide === 'lijevo' ? x < 50 : x > 50;
+    if (!onClaimedSide) return;
+
+    lying.claim.counted = true;
+    statsRef.current.filipFooled += 1;
+    runRef.current.filipFooled += 1;
+  }, []);
+
   const handleHit = useCallback(
     (entity) => {
       if (screen !== 'playing' || endingRef.current || entity.dying || entity.expiring) return;
+
+      // Klik na bilo šta drugo na strani na koju te je Filip poslao.
+      noteFooledIfFollowed(entity.x, entity.id);
 
       updateEntities((prev) =>
         prev.map((e) => (e.id === entity.id ? { ...e, dying: true, line: null } : e))
@@ -525,8 +569,7 @@ export default function App() {
 
       switch (entity.type) {
         case 'matija': {
-          const claim = filipClaimRef.current;
-          const isClaimed = claim && claim.matijaId === entity.id && performance.now() < claim.until;
+          const claim = entity.claim;
 
           addScore(SCORES.matija);
           bonksRef.current += 1;
@@ -536,20 +579,24 @@ export default function App() {
           playSound('bonk');
           showStars(x, y);
 
-          if (isClaimed && claim.truth) {
-            // Poslušala ga je i bio je u pravu.
-            addScore(SCORES.filipPovjerenje);
-            statsRef.current.filipTrusted += 1;
-            showFloat(x, y, `POSLUŠALA SI GA! +${SCORES.matija + SCORES.filipPovjerenje}`, 'great');
-          } else if (isClaimed && !claim.truth) {
-            // Filip je lagao, a Matija je ipak pronađen.
-            statsRef.current.filipCaught += 1;
-            showFloat(x, y, `FILIP JE LAGAO. +${SCORES.matija}`, 'good');
+          if (claim && !claim.counted) {
+            claim.counted = true;
+            if (claim.truth) {
+              // Poslušala ga je i bio je u pravu.
+              addScore(SCORES.filipPovjerenje);
+              statsRef.current.filipTrusted += 1;
+              runRef.current.filipTrusted = (runRef.current.filipTrusted ?? 0) + 1;
+              showFloat(x, y, `POSLUŠALA SI GA! +${SCORES.matija + SCORES.filipPovjerenje}`, 'great');
+            } else {
+              // Lagao je, ali si ga svejedno našla.
+              statsRef.current.filipCaught += 1;
+              runRef.current.filipCaught += 1;
+              showFloat(x, y, `NIJE TE PREVESLAO! +${SCORES.matija}`, 'good');
+            }
           } else {
             showFloat(x, y, `BONK! +${SCORES.matija}`, 'good');
           }
 
-          if (isClaimed) filipClaimRef.current = null;
           if (op.hasCombo) bumpCombo();
           break;
         }
@@ -609,7 +656,7 @@ export default function App() {
           break;
       }
     },
-    [screen, opIndex, updateEntities, later, addScore, showFloat, showStars, bumpCombo, breakCombo, anaGameOver]
+    [screen, opIndex, updateEntities, later, addScore, showFloat, showStars, bumpCombo, breakCombo, anaGameOver, noteFooledIfFollowed]
   );
 
   /**
@@ -623,10 +670,14 @@ export default function App() {
       if (!rect) return;
 
       const now = performance.now();
-      if (now - nearMissAtRef.current < TUNING.nearMissCooldownMs) return;
-
       const px = ((event.clientX - rect.left) / rect.width) * 100;
       const py = ((event.clientY - rect.top) / rect.height) * 100;
+
+      // Tap u prazno na strani na koju ju je Filip poslao — najjasniji dokaz
+      // da ga je poslušala.
+      noteFooledIfFollowed(px, null);
+
+      if (now - nearMissAtRef.current < TUNING.nearMissCooldownMs) return;
 
       const near = entitiesRef.current.find(
         (e) =>
@@ -650,7 +701,7 @@ export default function App() {
         420
       );
     },
-    [screen, showFloat, updateEntities, later]
+    [screen, showFloat, updateEntities, later, noteFooledIfFollowed]
   );
 
   // ------------------------------------------------------------------

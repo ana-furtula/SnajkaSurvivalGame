@@ -58,7 +58,7 @@ export default function Entity({ entity, onHit }) {
         {/* Ana nosi stalno upozorenje — nema izgovora. */}
         {type === 'ana' && !gone && (
           <span className="pointer-events-none absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-alarm px-2 py-[2px] text-[10px] font-bold uppercase tracking-wider text-cream">
-            ne diraj
+            KLIKNI MENE
           </span>
         )}
 

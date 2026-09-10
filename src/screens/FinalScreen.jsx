@@ -107,17 +107,9 @@ export default function FinalScreen({ score, stats, anaAvoided, onReplay }) {
           <StatRow label="Nićko pomažen" value={`${stats.nicko}×`} />
           <StatRow label="Želje pogođene" value={`${stats.cravingsHit}×`} />
           <StatRow label="Vino dotaknuto" value={`${stats.vino}×`} />
-          <StatRow label="Filipu povjereno" value={`${stats.filipTrusted}×`} />
-          <StatRow label="Filip uhvaćen u laži" value={`${stats.filipCaught}×`} />
-          <StatRow label="Ana izbjegnuta" value={anaAvoided ? 'DA ❤️' : 'NE'} />
-        </div>
-
-        <div className="mt-2 flex flex-col gap-0.5">
-          {FINAL_FOOTER.map((line) => (
-            <p key={line} className="text-xs italic text-ink/60">
-              {line}
-            </p>
-          ))}
+          <StatRow label="Filip te preveslao" value={`${stats.filipFooled}×`} />
+          <StatRow label="Provalila si Filipa" value={`${stats.filipCaught}×`} />
+          <StatRow label="OK si sa Anom" value={anaAvoided ? 'DA' : 'NE'} />
         </div>
 
         <GoldRule />

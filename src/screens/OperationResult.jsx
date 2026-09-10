@@ -48,9 +48,11 @@ export default function OperationResult({ operation, run, score, isLast, onNext 
             <Stat label="Najduži niz" value={`${run.bestCombo}×`} />
           )}
           {operation.hasCravings && <Stat label="Želje pogođene" value={`${run.cravingsHit}×`} />}
-          {operation.id === 4 && <Stat label="Filip bio u pravu" value={`${run.filipTruths}×`} />}
-          {operation.id === 4 && <Stat label="Filip lagao" value={`${run.filipLies}×`} />}
-          {operation.id === 5 && <Stat label="Ana izbjegnuta" value="DA ❤️" />}
+          {operation.id === 4 && <Stat label="Filip se šalio" value={`${run.filipLies}×`} />}
+          {operation.id === 4 && <Stat label="Filip bio ozbiljan" value={`${run.filipTruths}×`} />}
+          {operation.id === 4 && <Stat label="Provalila si ga" value={`${run.filipCaught}×`} />}
+          {operation.id === 4 && <Stat label="Preveslao te" value={`${run.filipFooled}×`} />}
+          {operation.id === 5 && <Stat label="OK si sa Anom" value="DA ❤️" />}
         </div>
       </div>
 
@@ -75,7 +77,7 @@ export default function OperationResult({ operation, run, score, isLast, onNext 
       )}
 
       <PrimaryButton onClick={onNext}>
-        {isLast ? 'Finalni rezultat' : 'Sljedeća operacija'}
+        {isLast ? 'Finalni rezultat' : 'Sledeća operacija'}
       </PrimaryButton>
     </Sheet>
   );

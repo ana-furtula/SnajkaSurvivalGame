@@ -2,126 +2,9 @@ import { useMemo, useState } from 'react';
 import Entity from './Entity.jsx';
 import { FOODS, MATIJA_IMAGES, FILIP_IMAGES, NICKO_IMAGES, FALLBACK_EMOJI } from '../config.js';
 import { getRandomImage } from '../utils.js';
-
-// ---------------------------------------------------------------------------
-//  Scenariji: svaka nova mehanika se demonstrira kroz nekoliko klikova.
-//  Pozicije su fiksne (ne random) da bi demonstracija uvijek bila čitljiva.
-//
-//  step.items  — šta stoji na demo polju
-//  step.accept — koji item vodi dalje
-//  step.reward — šta se ispiše kad se klikne pravi
-//  step.note   — presuda koja se prikaže PRIJE interakcije (Filip)
-// ---------------------------------------------------------------------------
+import { TUTORIALS } from '../tutorials.js';
 
 const food = (key) => FOODS.find((f) => f.key === key);
-
-const SCRIPTS = {
-  osnove: [
-    {
-      prompt: 'KLIKNI MATIJU',
-      items: [{ key: 'm', type: 'matija', x: 50, y: 50, highlight: true }],
-      accept: 'm',
-      reward: 'BONK! +1',
-    },
-    {
-      prompt: 'POMAZI NIĆKA',
-      items: [{ key: 'n', type: 'nicko', x: 50, y: 50, highlight: true }],
-      accept: 'n',
-      reward: 'NIĆKO +3',
-    },
-    {
-      prompt: 'UZMI HRANU',
-      items: [{ key: 'f', type: 'hrana', food: 'pizza', x: 50, y: 50, highlight: true }],
-      accept: 'f',
-      reward: 'NJAM! +2',
-    },
-  ],
-
-  udri: [
-    {
-      prompt: 'UDRI GA!',
-      items: [{ key: 'm', type: 'matija', x: 34, y: 46, highlight: true }],
-      accept: 'm',
-      reward: 'BONK! +1',
-    },
-    {
-      prompt: 'PONOVO!',
-      items: [{ key: 'm', type: 'matija', x: 68, y: 58 }],
-      accept: 'm',
-      reward: 'BONK! +1',
-    },
-    {
-      prompt: 'BRŽE. 😈',
-      items: [{ key: 'm', type: 'matija', x: 44, y: 68 }],
-      accept: 'm',
-      reward: 'BONK! +1',
-    },
-  ],
-
-  zelje: [
-    {
-      craving: 'pizza',
-      prompt: 'PRONAĐI JE',
-      items: [
-        { key: 'a', type: 'hrana', food: 'burger', x: 24, y: 40 },
-        { key: 'b', type: 'hrana', food: 'pizza', x: 52, y: 62, highlight: true },
-        { key: 'c', type: 'hrana', food: 'torta', x: 78, y: 38 },
-      ],
-      accept: 'b',
-      reward: 'NJAM! +5',
-    },
-    {
-      craving: 'burger',
-      prompt: 'NOVA ŽELJA! PRONAĐI BURGER',
-      items: [
-        { key: 'a', type: 'hrana', food: 'krofna', x: 26, y: 60 },
-        { key: 'b', type: 'hrana', food: 'burger', x: 56, y: 38 },
-        { key: 'c', type: 'hrana', food: 'pomfrit', x: 80, y: 64 },
-      ],
-      accept: 'b',
-      reward: 'NJAM! +5',
-    },
-    {
-      craving: 'burger',
-      prompt: 'A SAD NAMJERNO KLIKNI ČOKOLADU',
-      items: [
-        { key: 'a', type: 'hrana', food: 'cokolada', x: 38, y: 50, highlight: true },
-        { key: 'b', type: 'hrana', food: 'burger', x: 72, y: 54 },
-      ],
-      accept: 'a',
-      reward: 'NIJE TO. −1',
-      rewardTone: 'bad',
-      after: 'Sad znaš i kako izgleda promašaj.',
-    },
-  ],
-
-  filip: [
-    {
-      prompt: 'FILIP TVRDI DA JE MATIJA LIJEVO',
-      note: { text: 'OVAJ PUT GOVORI ISTINU', tone: 'good' },
-      items: [
-        { key: 'm', type: 'matija', x: 24, y: 60, highlight: true },
-        { key: 'f', type: 'filip', x: 72, y: 42, line: 'Matija je lijevo, vjeruj mi.' },
-      ],
-      accept: 'm',
-      reward: 'POSLUŠALA SI GA! +3',
-      rewardTone: 'great',
-      reject: { f: 'TO JE FILIP. −2' },
-    },
-    {
-      prompt: 'A SAD PAZI',
-      note: { text: 'OVAJ PUT LAŽE', tone: 'bad' },
-      items: [
-        { key: 'm', type: 'matija', x: 26, y: 58, highlight: true },
-        { key: 'f', type: 'filip', x: 74, y: 44, line: 'Matija je desno, kunem se.' },
-      ],
-      accept: 'm',
-      reward: 'MATIJA JE IPAK BIO LIJEVO. +1',
-      reject: { f: 'TO JE FILIP. −2' },
-      after: 'Filip nije uvijek u pravu. Ali nije ni uvijek u krivu.',
-    },
-  ],
-};
 
 /** Pravi objekat koji Entity ume da nacrta. */
 function toEntity(item) {
@@ -163,7 +46,7 @@ function toEntity(item) {
  * jednom sam ne uradi ono što se od njega traži.
  */
 export default function Tutorial({ kind, onDone }) {
-  const script = SCRIPTS[kind] ?? [];
+  const script = TUTORIALS[kind] ?? [];
   const [stepIndex, setStepIndex] = useState(0);
   const [feedback, setFeedback] = useState(null); // { text, tone }
   const [locked, setLocked] = useState(false);
