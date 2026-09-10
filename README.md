@@ -1,9 +1,9 @@
-# 💍 Misija: Preživjeti porodicu
+# 💍 Operacija: Snajka
 
-Mobilna-first web igrica (whack-a-mole) — poklon za snajku. Otvara se skeniranjem QR koda,
-6 nivoa, jedno sveto pravilo (ne diraj Anu) i gomila porodičnih fora.
+Mobilna web igrica — poklon za buduću snajku, otvara se skeniranjem QR koda.
+Pet „operacija", oko 2–3 minuta, prava lica porodice umjesto krtica.
 
-**Stack:** Vite + React + Tailwind CSS (bez servera, bez baze — čisto statički build za GitHub Pages).
+**Stack:** Vite + React + Tailwind CSS 3 (bez servera i baze — statički build za GitHub Pages).
 
 ---
 
@@ -14,208 +14,164 @@ npm install
 npm run dev      # lokalno, http://localhost:5173/SnajkaSurvivalGame/
 npm run build    # produkcijski build u /dist
 npm run preview  # provjera builda lokalno
-npm run sounds   # ponovo generiše zvučne efekte u public/sounds/
+npm run sounds   # ponovo generiše sintetizovane zvukove
 ```
 
-> Napomena: `base` u [vite.config.js](vite.config.js) je `/SnajkaSurvivalGame/`, pa dev server
-> otvara igru na `/SnajkaSurvivalGame/` (Vite sam otvori tačan URL).
+> `base` u [vite.config.js](vite.config.js) je `/SnajkaSurvivalGame/` i mora odgovarati
+> imenu repozitorija. Ako preimenuješ repo, promijeni i ovo.
 
 ---
 
-## 🖼️ Ubacivanje slika
-
-Slike idu u `public/images/<lik>/` i imenuju se `<lik>-1`, `<lik>-2`, ...
+## Tok igre
 
 ```
-public/images/matija/matija-1.jpg, matija-2.jpg          ✅ ubačeno
-public/images/filip/filip-1.jpg, filip-2.jpg             ✅ ubačeno
-public/images/ana/ana-1.jpg, ana-2.jpg                   ✅ ubačeno
-public/images/maltezer/maltezer-1.png, maltezer-2.png    ⬜ još fali (emoji 🐶)
-public/images/vino/vino-1.png                            ⬜ još fali (emoji 🍷)
-public/images/hrana/pizza-1.png, burger-1.png, torta-1.png,
-                   pomfrit-1.png, cokolada-1.png, krofna-1.png   ⬜ još fali (emoji)
+Start → Intro operacije → Interaktivni tutorial → Gameplay → Rezultat → (sljedeća) → Finale
 ```
 
-Ekstenzija je slobodna (`.jpg`, `.png`, `.webp`) — bitno je samo da se putanja u
-`config.js` poklapa sa imenom fajla.
+Nema automatskog prelaska — igrač uvijek klikne **SLJEDEĆA OPERACIJA** ili **POKRENI OPERACIJU**.
+Refresh stranice resetuje sve: operacija 1, rezultat 0, svi brojači na nuli.
 
-Nakon što ubaciš/izbaciš sliku, uskladi nizove u [src/config.js](src/config.js):
-
-```js
-export const MATIJA_IMAGES = assets([
-  '/images/matija/matija-1.jpg',
-  '/images/matija/matija-2.jpg',   // dodaj ili obriši red — kod koristi .length
-]);
-```
-
-Svaki put kad se lik pojavi, nasumično se bira jedna slika iz njegovog niza.
-**Ako slika nedostaje ili se ne učita, automatski se prikaže emoji** (👨 / 👨‍🦱 / 👩 / 🐶 / 🍷 / 🍕),
-tako da igra radi i prije nego ubaciš ijedan fajl.
-
-Preporuka: kvadratne slike oko 400×400 px, do ~150 kB. Slike se prikazuju kao kvadrat
-(80 px) sa `object-cover`, pa se pravougaone fotke centralno isijeku — lice treba biti
-u sredini kadra. Slike manje od ~250 px izgledaju mutno na telefonu.
+| # | Operacija | Trajanje | Šta se uvodi |
+|---|---|---|---|
+| 01 | UPOZNAJ MATERIJAL | 20 s | Matija, Nićko, hrana |
+| 02 | UDRI MATIJU! | 25 s | tempo + combo |
+| 03 | TRUDNIČKE ŽELJE | 25 s | trenutna želja |
+| 04 | DA LI FILIP LAŽE? | 28 s | Filipovi savjeti + vino |
+| 05 | PORODIČNI HAOS | 30 s | tri faze + Ana + odbrojavanje |
 
 ---
 
-## 🎮 Pravila i bodovanje
+## Bodovanje
 
 | Element | Klik | Napomena |
 |---|---|---|
-| 👨 Matija | **+1** | glavna meta, "BONK!" animacija |
-| 🐶 Maltezer | **+3** | bonus, ne kažnjava se ako ga propustiš |
-| 🍕 Hrana | **+2** | obična hrana |
-| ⭐ Hrana = TRENUTNA ŽELJA | **+5** | od nivoa 2; pogrešna hrana dok je želja aktivna = **−1** |
-| 🍷 Vino | **−3** | "OHO! To trenutno ne smije." |
-| 👨‍🦱 Filip | **??** | 4 nasumične fore (vidi ispod) |
-| 👩 Ana | **KRAJ IGRE** | klik = odmah Game Over, igra kreće ispočetka |
+| 👨 Matija | **+1** | zvjezdice oko glave, jedan od jauka |
+| 🐶 Nićko | **+3** | bonus, propuštanje se ne kažnjava |
+| 🍕 Hrana | **+2** | samo dok nema aktivne želje (operacija 01) |
+| ⭐ Željena hrana | **+5** | pogođena trenutna želja |
+| 😒 Pogrešna hrana | **−1** | dok je želja aktivna |
+| 🍷 Vino | **−3** | znaš već zašto |
+| 👨‍🦱 Filip (klik na njega) | **−2** | uvijek |
+| 👨‍🦱 Filip rekao istinu, poslušala si ga | **+3** | +1 za Matiju i +2 povjerenja |
+| 👩 Ana | **GAME OVER** | jedini instant kraj igre |
 
-**Filipove fore** (`FILIP_LINES` u [src/config.js](src/config.js) — bira se jedna nasumično
-pri svakom pojavljivanju, uvodi se od nivoa 4):
+---
 
-| Linija | `effect` | Šta radi |
+## Mehanike
+
+### Tutorial prije svake nove mehanike
+
+Svaka operacija koja uvodi nešto novo prvo to **pokaže kroz interaktivni primjer**:
+pojavi se element, piše se šta treba uraditi, igrač klikne i vidi rezultat. Tek onda
+se otključava dugme za pravi gameplay. Scenariji su u
+[src/components/Tutorial.jsx](src/components/Tutorial.jsx) (`SCRIPTS`), pozicije su
+fiksne da bi demonstracija bila čitljiva.
+
+Operacija 05 nema tutorial — sve je već pokazano.
+
+### Tempo raste unutar operacije
+
+Svaka operacija (i svaka faza finala) ima `pacing`: razmak između pojavljivanja,
+trajanje elementa na ekranu i najveći broj elemenata **linearno se kreću** od
+početnih ka završnim vrijednostima. Početak je uvijek sporiji i rjeđi, kraj gušći.
+
+### Trudničke želje — garantovani spawn
+
+HUD nikad ne smije tražiti hranu koja se ne pojavi. Kad se postavi nova želja:
+
+1. odmah se planira spawn te hrane u prvoj trećini prozora,
+2. postoji i tvrdi rok — ako se do tada nije pojavila, ubacuje se bez obzira na ostalo,
+3. željena hrana ostaje na ekranu **35% duže** od ostalih,
+4. nova želja nikad nije ista kao prethodna.
+
+Simulirano na 3600 prozora želje: nijedan bez spawna.
+
+### Filip — istina ili laž
+
+Kad Filip tvrdi gdje je Matija, sistem **stvarno postavi Matiju** na tu ili suprotnu
+stranu. Filip stoji nasuprot svojoj tvrdnji, pa smjer ima smisla.
+
+- ~60% vremena govori istinu (`filipTruthChance` po operaciji)
+- poslušaš ga i bio je u pravu → **+3**
+- lagao je, ali si ipak našla Matiju → **+1** i broji se kao „uhvaćen u laži"
+- klikneš njega → **−2**
+
+Ostale izjave su čista fora bez uticaja na polje. Sve su u `FILIP_LINES`
+u [src/config.js](src/config.js) — nova je jedan red.
+
+### Za dlaku (near miss)
+
+Tap koji promaši, ali padne vrlo blizu vina ili Ane, daje **„UF. BLIZU."** i element
+se kratko zatrese. Bez kazne — cilj je napetost, ne frustracija.
+
+### Combo
+
+U operaciji 02 uzastopni pogoci Matije grade niz. Na 5, 10 i 15 pogodaka stiže
+banner i mali bonus. Niz prekida propušten Matija ili pogrešan klik.
+
+### Završna operacija — tri faze
+
+| Sekunde | Faza | Šta je u igri |
 |---|---|---|
-| „Ne znam šta radim ovdje." | `none` | bez efekta; klik na Filipa = ni kazne ni bonusa |
-| „Matija je lijevo, vjeruj mi." | `lijevo` | Filip se pojavi **desno**, a lijevo garantovano iskoči jedan element. Klik na bilo šta u lijevoj polovini = **+2 bonusa** povrh redovnih bodova. Klik na Filipa = **−2** |
-| „Klikni Anu, vjeruj mi." | `anaZamka` | zamka: na nivoima gdje Ana postoji, ona se odmah pojavi. Klikneš li Anu — **kraj igre**. Klik na Filipa = bez efekta. Ignorisati = bez posljedica |
-| „Matija hrče." | `none` | bez efekta; klik na Filipa = ni kazne ni bonusa |
+| 0–10 | SVE JE POD KONTROLOM | Matija, Nićko, hrana + želje |
+| 10–20 | DOBRO, POČINJE HAOS | + Filip, vino |
+| 20–30 | PORODIČNI HAOS | + Ana, odbrojavanje zadnjih 5 s |
 
-Nova fora = novi red u `FILIP_LINES` sa `{ text, effect }`. Za foru bez posljedica
-dovoljan je `effect: 'none'` — glavna logika se ne dira.
-
-Bonus za „lijevo" namjerno ne važi za vino ni Anu (`LEFT_BONUS_TYPES` u
-[src/App.jsx](src/App.jsx)) — zamke ostaju zamke.
-
-**Ana = kraj igre.** Nema života, nema druge šanse: klik na Anu odmah vodi na Game Over
-ekran, a dugme "🔁 OD POČETKA" vraća igru na nivo 1 sa skorom 0. Na nivoima gdje se Ana
-pojavljuje (5 i 6) u HUD-u stalno stoji crveno upozorenje "👩 NE KLIKĆI ANU!".
+Klik na Anu: prekid igre, crveni bljesak, tresenje, „💥 KLIKNULA SI ANU", pa „UH-OH",
+pa Game Over. Klik na Anu se **ne pripisuje Filipu** — kliknula je Anu, tačka.
 
 ---
 
-## 🔊 Zvukovi
+## Slike i zvuk
 
-**Svi zvukovi su već generisani** i stoje u `public/sounds/` — igra ima zvuk odmah,
-ništa ne moraš ubacivati.
+Slike idu u `public/images/<lik>/`, zvukovi u `public/sounds/`.
+Oboje rade po istom principu: **niz varijanti**, iz kojeg se pri svakom pojavljivanju
+bira nasumična. Dodavanje varijante je jedan red u nizu u [src/config.js](src/config.js).
 
-```
-public/sounds/scream1..6.mp3      # udarac: pravi jauci (snimci)    ┐ bira se nasumično
-public/sounds/bonk.wav            # udarac: cartoon tresak          ┘
-public/sounds/maltese-panting.mp3 # pas: dahtanje (snimak)          ┐
-public/sounds/maltese.wav         # pas: veselo cijukanje           ├ bira se nasumično
-public/sounds/maltese-av.wav      # pas: sintetičko "AV AV"         ┘
-public/sounds/food-njam.mp3       # hrana: "MMM NJAM!"
-public/sounds/food-chomp.wav      # hrana: mljackanje (nije aktivno, vidi dolje)
-public/sounds/wine-fail.wav       # vino (buzzer, dva kratka brujanja)
-public/sounds/filip-appear.wav    # Filip se pojavio (boing)
-public/sounds/ana-fail.wav        # Ana kliknuta (silazni "uh-oh")
-public/sounds/level-complete.wav  # kraj nivoa (uzlazna fanfara)
-public/sounds/final-fanfare.wav   # finalni rezultat (veliki akord)
-```
+**Ako slika fali, prikazuje se emoji.** Ako zvuk fali, igra radi bez njega —
+[src/audio.js](src/audio.js) hvata grešku i taj fajl više ne pokušava.
 
-**Više varijanti po događaju.** Vrijednost u `SOUNDS` može biti niz — tada se pri
-svakom puštanju bira nasumična varijanta, isto kao slike likova:
+Trenutno stanje: Matija, Filip, Ana i Nićko imaju fotografije; vino i hrana su na emojijima.
 
-```js
-bonk: assets(['/sounds/scream1.mp3', ..., '/sounds/bonk.wav']),
-hrana: assets(['/sounds/food-njam.mp3']),   // dodaj '/sounds/food-chomp.wav' ako želiš i mljackanje
-```
+`SOUND_MAX_MS` ograničava trajanje po događaju — neki snimci traju po nekoliko sekundi,
+a udarac se okida i po jednom u sekundi, pa bi se bez toga naslagali.
 
-Ne sviđa ti se neka varijanta? Obriši joj red iz niza — ne moraš brisati fajl.
-
-**Ograničenje trajanja: `SOUND_MAX_MS`.** Neki snimci traju po nekoliko sekundi
-(`maltese-panting.mp3` je 23 s), a udarac se okida i po jednom u sekundi — bez
-ograničenja bi se zvukovi naslagali jedan preko drugog. Zato svaki događaj ima
-najduže trajanje; pri kraju se zvuk tiho utiša da nema naglog reza:
-
-```js
-export const SOUND_MAX_MS = {
-  bonk: 1100,      // udarci su najčešći — moraju biti kratki
-  maltezer: 1500,
-  hrana: null,     // null = pusti fajl do kraja
-};
-```
-
-**Sintetički glasovi** („AV AV", „MMM NJAM") nisu snimak — napravljeni su
-formantnom sintezom: brujanje glasnica propušteno kroz rezonatore koji oponašaju usnu
-duplju. Tabela `PHONE` u skripti drži formante svakog glasa, a `speak()` prelazi između
-njih i tako „izgovara". Hoćeš drugu riječ? Složi je iz postojećih glasova:
-
-```js
-phones: [{ t: 0, p: 'm', amp: 0.6 }, { t: 0.3, p: 'a', amp: 1 }, { t: 0.5, p: 'j', amp: 0.7 }]
-```
-
-Napravljeni su sintezom (sinusi, šum, envelope) skriptom
-[scripts/generate-sounds.mjs](scripts/generate-sounds.mjs) — bez ijedne zavisnosti:
-
-```bash
-npm run sounds     # ponovo generiše sve .wav fajlove
-```
-
-Hoćeš drugačiji zvuk? Mijenjaj brojke u toj skripti (frekvencije, trajanje, `decay`)
-i pokreni ponovo. Hoćeš PRAVE glasove? Snimi telefonom 2 sekunde („jao", „av av", „mmm njam"), snimak
-ubaci u `public/sounds/` i dodaj putanju u odgovarajući niz u [src/config.js](src/config.js).
-Za poklon-igru su pravi porodični glasovi i smješniji i uvjerljiviji od sinteze.
-
-Putanje su konstante u `SOUNDS` — postavi neku na `null` da ugasiš baš taj zvuk.
-Jačina svih je `SOUND_VOLUME` (0–1).
-
-**Ako fajl ne postoji, igra radi normalno** — [src/audio.js](src/audio.js) hvata svaku
-grešku, zapamti koji je fajl pukao i više ga ne pokušava pustiti. Isto važi ako browser
-blokira zvuk.
-
-**Mute dugme** (🔊/🔇) stoji u HUD-u tokom igre i u gornjem desnom uglu na svim ostalim
-ekranima. Preferenca živi u React state-u dok je app otvoren (ne pamti se između sesija —
-tako je i traženo).
-
-Napomena o browserima: zvuk se smije pustiti tek nakon prvog korisničkog klika, pa se
-fajlovi učitavaju na dugme „Započni".
+Dio zvukova (start, combo, near miss, odbrojavanje, fanfare, buzzer) generiše
+[scripts/generate-sounds.mjs](scripts/generate-sounds.mjs) iz čiste matematike —
+`npm run sounds`, bez ijedne zavisnosti.
 
 ---
 
-## ⚙️ Podešavanje igre
+## Vizuelni identitet
+
+Vjenčana pozivnica u sudaru sa arcade igrom.
+
+| Boja | Hex | Uloga |
+|---|---|---|
+| Ivory | `#F7F2E8` | podloga |
+| Cream | `#FDFAF5` | kartice i polje |
+| Burgundy | `#641F2B` | naslovi, dugmad, rezultat |
+| Gold | `#B99A5B` | linije, oznake, akcenti |
+| Blush | `#E8D9D0` | tihe površine |
+| Sage | `#4E7A5A` | pozitivan feedback |
+| Alarm | `#C0392B` | greške, vino, Ana |
+
+Serif (**Cormorant Garamond**) nosi naslove, sans (**Jost**) HUD i gameplay.
+Motiv operacije je suptilan — oznake `01 / 05` i tanke zlatne linije, bez bolničkog izgleda.
+
+---
+
+## Podešavanje
 
 Sve je u [src/config.js](src/config.js):
 
+- `OPERATIONS` — trajanje, elementi, težine, `pacing`, faze, želje, Filipova vjerodostojnost
 - `SCORES` — svi bodovi
-- `SOUNDS` / `SOUND_VOLUME` / `SOUND_MAX_MS` — zvukovi, jačina i najduže trajanje
-- `FILIP_LINES` — Filipove fore (`{ text, effect }`)
-- `LEVELS` — nivoi: `duration` (sekunde), `elements`, `spawnRate` (ms, manje = brže),
-  `lifetime` (koliko element ostaje), `maxOnScreen`, `weights` (vjerovatnoća pojavljivanja),
-  `hasCravings` / `cravingEvery`, `targetBonks`
-- `FOODS` — vrste hrane
-- `TITLES` — pragovi skora za titule na kraju
-- `LEVEL_COMPLETE_MESSAGES`, `FINAL_MESSAGE` — tekstovi
-
-Ako želiš kraću igru — samo obriši nivoe iz `LEVELS` (kod nigdje ne pretpostavlja njihov broj).
-
----
-
-## 🚀 Deploy na GitHub Pages
-
-1. **Ime repozitorija mora odgovarati `base` putanji.** Repo se zove `SnajkaSurvivalGame`,
-   pa je u [vite.config.js](vite.config.js) `base: '/SnajkaSurvivalGame/'`.
-   Ako preimenuješ repo — promijeni i ovo.
-2. Push na `main`.
-3. Na GitHubu: **Settings → Pages → Source: GitHub Actions**.
-4. Workflow [.github/workflows/deploy.yml](.github/workflows/deploy.yml) sam builda i deploya
-   pri svakom push-u na `main`.
-5. Igra je onda na `https://<tvoj-username>.github.io/SnajkaSurvivalGame/` — taj link
-   pretvoriš u QR kod.
-
-**Alternativa bez Actions** (ručno, `gh-pages` grana):
-
-```bash
-npm run deploy
-```
-
-pa u Settings → Pages izaberi granu `gh-pages`.
-
----
-
-## 📸 "Sačuvaj rezultat"
-
-Finalni ekran se preko `html2canvas` snima kao PNG i skida se na telefon — sve u browseru,
-bez servera. Konfeti radi `canvas-confetti`.
+- `COMBO_STEPS` — pragovi i tekstovi combo-a
+- `TUNING` — otkucaj petlje, jitter, razmak elemenata, near-miss radijus, odbrojavanje
+- `FILIP_LINES`, `FILIP_ANA_LINES` — izjave
+- `FOODS`, `TITLES`/`FINAL_RESULTS`, `BONK_VERDICTS` — hrana i završni tekstovi
+- `SOUNDS`, `SOUND_VOLUME`, `SOUND_MAX_MS` — zvuk
 
 ---
 
@@ -223,15 +179,26 @@ bez servera. Konfeti radi `canvas-confetti`.
 
 ```
 src/
-  config.js               # sve podesivo: slike, zvukovi, bodovi, nivoi, Filipove fore, tekstovi
-  audio.js                # puštanje zvuka (tiho pada ako fajl fali) + mute
-  entities.js             # spawn logika (koji element, gdje, koliko dugo)
-  utils.js                # random helperi, izbor po težinama, traženje slobodne pozicije
+  config.js               # sve podesivo
+  entities.js             # pravljenje elemenata (tip, pozicija, trajanje, slika)
+  utils.js                # random, težine, traženje slobodne pozicije, strane polja
+  audio.js                # zvuk: varijante, mute, ograničenje trajanja
+  App.jsx                 # game loop, faze, bodovanje, tok ekrana
+  components/  Hud, Entity, Sprite, Tutorial, Banner, Countdown,
+               FloatingText, StarBurst, MuteButton, ui
+  screens/     StartScreen, OperationIntro, OperationResult,
+               GameOverScreen, FinalScreen
 scripts/
-  generate-sounds.mjs     # sinteza .wav zvukova (npm run sounds)
-  App.jsx                 # game loop, bodovanje, prelazak nivoa
-  components/  Hud, Entity, Sprite (emoji fallback), FloatingText, MuteButton
-  screens/     TitleScreen, LevelCompleteScreen, GameOverScreen, FinalScreen
-public/images/            # ovdje idu slike likova
-public/sounds/            # ovdje idu zvukovi
+  generate-sounds.mjs     # sinteza zvukova (npm run sounds)
+public/images/            # slike likova
+public/sounds/            # zvukovi
 ```
+
+---
+
+## Deploy
+
+Svaki push na `main` automatski builda i objavljuje —
+[.github/workflows/deploy.yml](.github/workflows/deploy.yml).
+
+Igra je na **https://ana-furtula.github.io/SnajkaSurvivalGame/** — taj link ide u QR kod.

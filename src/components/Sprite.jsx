@@ -1,8 +1,8 @@
 import { useState } from 'react';
 
 /**
- * Prikazuje sliku lika, a ako slika ne postoji ili se ne učita (npr. fajl
- * još nije ubačen u /public/images), pada na emoji — igra nikad ne pukne.
+ * Slika lika; ako fajl ne postoji ili se ne učita, pada na emoji —
+ * igra nikad ne pukne zbog slike koja fali.
  */
 export default function Sprite({ src, emoji, size }) {
   const [broken, setBroken] = useState(false);
@@ -10,8 +10,8 @@ export default function Sprite({ src, emoji, size }) {
   if (!src || broken) {
     return (
       <span
-        className="flex items-center justify-center leading-none drop-shadow-[0_4px_6px_rgba(0,0,0,0.45)]"
-        style={{ width: size, height: size, fontSize: size * 0.82 }}
+        className="flex items-center justify-center leading-none"
+        style={{ width: size, height: size, fontSize: size * 0.8 }}
         aria-hidden="true"
       >
         {emoji}
@@ -26,7 +26,7 @@ export default function Sprite({ src, emoji, size }) {
       draggable="false"
       onError={() => setBroken(true)}
       style={{ width: size, height: size }}
-      className="rounded-2xl object-cover shadow-[0_6px_14px_rgba(0,0,0,0.45)]"
+      className="rounded-full object-cover"
     />
   );
 }

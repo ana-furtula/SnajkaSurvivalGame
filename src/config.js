@@ -1,270 +1,345 @@
 // ============================================================================
-//  MISIJA: PREŽIVJETI PORODICU — CENTRALNA KONFIGURACIJA
-//  Ovdje je SVE što se najčešće mijenja: slike, bodovi, nivoi, poruke.
-//  Ne moraš dirati ostatak koda da bi promijenio balans igre.
+//  OPERACIJA: SNAJKA — CENTRALNA KONFIGURACIJA
+//  Ovdje je SVE što se podešava: slike, zvukovi, bodovi, operacije, tempo,
+//  Filipove izjave i završne poruke. Logika se ne dira.
 // ============================================================================
 
-// Vite servira /public sa "base" putanje (npr. /SnajkaSurvivalGame/ na GitHub Pages),
-// pa svaku putanju iz /public provlačimo kroz ovaj helper. Zato slike pišeš
-// prirodno kao "/images/matija/matija-1.png" i radi i lokalno i na Pages-u.
+// Vite servira /public sa "base" putanje (na GitHub Pages je to /SnajkaSurvivalGame/),
+// pa svaku putanju provlačimo kroz helper — tako iste putanje rade i lokalno i uživo.
 const asset = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
 const assets = (paths) => paths.map(asset);
 
 // ---------------------------------------------------------------------------
-//  1) SLIKE — samo dodaj ili obriši red u nizu, kod koristi .length
-//     Ako fajl ne postoji, automatski se prikaže emoji fallback (vidi Sprite.jsx).
+//  1) SLIKE — dodaj ili obriši red, kod koristi .length
+//     Ako fajl fali, prikazuje se emoji (vidi Sprite.jsx) i igra radi normalno.
 // ---------------------------------------------------------------------------
 
-export const MATIJA_IMAGES = assets([
-    '/images/matija/matija-1.jpg',
-    '/images/matija/matija-2.jpg',
-]);
-
-export const FILIP_IMAGES = assets([
-    '/images/filip/filip-1.jpg',
-    '/images/filip/filip-2.jpg',
-]);
-
-export const ANA_IMAGES = assets([
-    '/images/ana/ana-1.jpg',
-    '/images/ana/ana-2.jpg',
-]);
-
-export const MALTEZER_IMAGES = assets([
-    '/images/maltezer/maltezer-1.jpg',
-    '/images/maltezer/maltezer-2.jpg',
-]);
-
-export const VINO_IMAGES = assets([
-    '/images/vino/vino-1.png',
-]);
-
-// ---------------------------------------------------------------------------
-//  2) HRANA — svaka stavka ima svoj niz slika (isti sistem varijacija)
-// ---------------------------------------------------------------------------
+export const MATIJA_IMAGES = assets(['/images/matija/matija-1.jpg', '/images/matija/matija-2.jpg']);
+export const FILIP_IMAGES = assets(['/images/filip/filip-1.jpg', '/images/filip/filip-2.jpg']);
+export const ANA_IMAGES = assets(['/images/ana/ana-1.jpg', '/images/ana/ana-2.jpg']);
+export const NICKO_IMAGES = assets(['/images/maltezer/maltezer-1.jpg', '/images/maltezer/maltezer-2.jpg']);
+export const VINO_IMAGES = assets(['/images/vino/vino-1.jpg']);
 
 export const FOODS = [
-    { key: 'pizza', name: 'PIZZA', emoji: '🍕', images: assets(['/images/hrana/pizza-1.png']) },
-    { key: 'burger', name: 'BURGER', emoji: '🍔', images: assets(['/images/hrana/burger-1.png']) },
-    { key: 'torta', name: 'TORTA', emoji: '🍰', images: assets(['/images/hrana/torta-1.png']) },
-    { key: 'pomfrit', name: 'POMFRIT', emoji: '🍟', images: assets(['/images/hrana/pomfrit-1.png']) },
-    { key: 'cokolada', name: 'ČOKOLADA', emoji: '🍫', images: assets(['/images/hrana/cokolada-1.png']) },
-    { key: 'krofna', name: 'KROFNA', emoji: '🍩', images: assets(['/images/hrana/krofna-1.png']) },
+  { key: 'pizza', name: 'PIZZA', emoji: '🍕', images: assets(['/images/hrana/pizza-1.jpg']) },
+  { key: 'burger', name: 'BURGER', emoji: '🍔', images: assets(['/images/hrana/burger-1.jpg']) },
+  { key: 'torta', name: 'TORTA', emoji: '🍰', images: assets(['/images/hrana/torta-1.jpg']) },
+  { key: 'pomfrit', name: 'POMFRIT', emoji: '🍟', images: assets(['/images/hrana/pomfrit-1.jpg']) },
+  { key: 'cokolada', name: 'ČOKOLADA', emoji: '🍫', images: assets(['/images/hrana/cokolada-1.jpg']) },
+  { key: 'krofna', name: 'KROFNA', emoji: '🍩', images: assets(['/images/hrana/krofna-1.jpg']) },
 ];
 
+export const FALLBACK_EMOJI = {
+  matija: '👨',
+  filip: '👨‍🦱',
+  ana: '👩',
+  nicko: '🐶',
+  vino: '🍷',
+  hrana: '🍕',
+};
+
+// Kako se lik zove u tekstu igre.
+export const NAMES = {
+  matija: 'Matija',
+  filip: 'Filip',
+  ana: 'Ana',
+  nicko: 'Nićko',
+};
+
 // ---------------------------------------------------------------------------
-//  2b) ZVUKOVI — fajlovi idu u /public/sounds/
-//      Isti princip kao slike: ako fajl ne postoji, igra radi normalno,
-//      samo bez tog zvuka (vidi audio.js). Postavi na null da ugasiš zvuk.
-//
-//      Vrijednost može biti JEDNA putanja ili NIZ varijanti — tada se pri
-//      svakom puštanju bira nasumična, pa se zvuk ne ponavlja dosadno.
-//      Novu varijantu dodaješ samo kao novi red u nizu.
+//  2) ZVUKOVI — fajlovi u /public/sounds/
+//     Vrijednost može biti jedna putanja ili niz varijanti (bira se nasumična).
+//     Ako fajl fali, igra radi bez tog zvuka.
 // ---------------------------------------------------------------------------
 
 export const SOUNDS = {
-    // Udarac po Matiji: pravi jauci + jedan cartoon tresak.
-    // Obriši red da izbaciš varijantu koja ti se ne sviđa.
-    bonk: assets([
-        '/sounds/scream1.mp3',
-        '/sounds/scream2.mp3',
-        '/sounds/scream3.mp3',
-        '/sounds/scream4.mp3',
-        '/sounds/bonk.wav',
-    ]),
-
-    // Maltezer: pravo dahtanje + cijukanje
-    maltezer: assets([
-        '/sounds/maltese-panting.mp3',
-        '/sounds/maltese.wav',
-    ]),
-
-    // Hrana pogođena: "MMM NJAM" (dodaj '/sounds/food-chomp.wav' ako želiš i mljackanje)
-    hrana: assets(['/sounds/food-njam.mp3']),
-
-    // Hrana promašena: kliknuta hrana koja NIJE trenutna želja
-    hranaPogresna: asset('/sounds/failed.mp3'),
-
-    vino: asset('/sounds/wine-fail.wav'), // vino (zamka)
-    filip: asset('/sounds/filip-appear.wav'), // Filip se pojavio
-    ana: asset('/sounds/ana-fail.wav'), // Ana kliknuta = kraj
-    levelComplete: asset('/sounds/level-complete.wav'), // kraj nivoa
-    final: asset('/sounds/final-fanfare.wav'), // finalni rezultat
+  start: asset('/sounds/start.wav'),
+  bonk: assets([
+    '/sounds/scream1.mp3',
+    '/sounds/scream2.mp3',
+    '/sounds/scream3.mp3',
+    '/sounds/scream4.mp3',
+    '/sounds/bonk.wav',
+  ]),
+  nicko: assets(['/sounds/maltese-panting.mp3', '/sounds/maltese.wav']),
+  hrana: assets(['/sounds/food-njam.mp3']),
+  hranaPogresna: asset('/sounds/failed.mp3'),
+  vino: asset('/sounds/wine-fail.wav'),
+  filip: asset('/sounds/filip-appear.wav'),
+  combo: asset('/sounds/combo.wav'),
+  nearMiss: asset('/sounds/near-miss.wav'),
+  countdown: asset('/sounds/countdown.wav'),
+  ana: asset('/sounds/ana-fail.wav'),
+  operationDone: asset('/sounds/level-complete.wav'),
+  final: asset('/sounds/final-fanfare.wav'),
 };
 
-// Najduže trajanje zvuka po događaju (ms). Neki snimci su dugi po nekoliko
-// sekundi — bez ovoga bi se pri brzom tapkanju naslagali jedan preko drugog
-// i pretvorili u buku. Zvuk se pri kraju tiho utiša, pa nema "reza".
-// null / izostavljeno = pusti fajl do kraja.
+// Najduže trajanje zvuka po događaju (ms) — neki snimci su dugi po nekoliko
+// sekundi, pa bi se pri brzom tapkanju naslagali. null = pusti do kraja.
 export const SOUND_MAX_MS = {
-    bonk: 1100, // udarci se okidaju najčešće — moraju biti kratki
-    maltezer: 1500,
-    hrana: null,
-    hranaPogresna: 1200,
-    vino: null,
-    filip: null,
-    ana: null,
-    levelComplete: null,
-    final: null,
+  bonk: 1100,
+  nicko: 1500,
+  hranaPogresna: 1200,
+  nearMiss: 700,
 };
 
-export const SOUND_VOLUME = 0.7; // 0 do 1
-
-// Emoji fallback po tipu elementa (koristi se ako slika nedostaje ili ne učita).
-export const FALLBACK_EMOJI = {
-    matija: '👨',
-    filip: '👨‍🦱',
-    ana: '👩',
-    maltezer: '🐶',
-    vino: '🍷',
-    hrana: '🍕',
-};
+export const SOUND_VOLUME = 0.7;
 
 // ---------------------------------------------------------------------------
 //  3) BODOVANJE
 // ---------------------------------------------------------------------------
 
 export const SCORES = {
-    matija: 1, // glavna meta
-    maltezer: 3, // bonus
-    hrana: 2, // obična hrana
-    hranaZelja: 5, // pogođena TRENUTNA ŽELJA
-    hranaPogresna: -1, // pogrešna hrana dok je želja aktivna
-    vino: -3, // zamka
-    filipLijevoBonus: 2, // ako ignorišeš Filipa i klikneš element lijevo
-    filipLijevoKazna: -2, // ako umjesto toga klikneš samog Filipa
+  matija: 1,
+  nicko: 3,
+  hrana: 2, // hrana dok nema aktivne želje (operacija 01)
+  hranaZelja: 5, // pogođena trenutna želja
+  hranaPogresna: -1, // pogrešna hrana dok je želja aktivna
+  vino: -3,
+  filipKlik: -2, // klik na samog Filipa
+  filipPovjerenje: 2, // bonus ako je Filip rekao istinu i poslušala si ga
+  comboBonus: 2, // dodatno na svaki prag combo-a
 };
 
-// Napomena: igra nema živote. Klik na Anu je trenutni kraj igre.
-
-// ---------------------------------------------------------------------------
-//  4) NIVOI
-//     duration    — trajanje nivoa u sekundama
-//     elements    — koji tipovi se pojavljuju
-//     spawnRate   — prosječni razmak između pojavljivanja (ms, manje = brže)
-//     lifetime    — koliko element ostaje na ekranu (ms)
-//     maxOnScreen — koliko ih najviše može biti istovremeno
-//     weights     — vjerovatnoća pojavljivanja (relativni odnos, ne mora biti 100)
-// ---------------------------------------------------------------------------
-
-export const LEVELS = [{
-        id: 1,
-        name: 'Upoznaj materijal',
-        intro: 'Matija se pojavljuje. Ti ga bonkuješ. Tako to ide.',
-        duration: 15,
-        elements: ['matija', 'maltezer', 'hrana'],
-        spawnRate: 1200,
-        lifetime: 1800,
-        maxOnScreen: 4,
-        weights: { matija: 60, maltezer: 15, hrana: 25 },
-    },
-    {
-        id: 2,
-        name: 'Trudničke želje',
-        intro: 'Sad postoji TRENUTNA ŽELJA. Pogriješiš li hranu — nervoza.',
-        duration: 15,
-        elements: ['matija', 'maltezer', 'hrana'],
-        hasCravings: true,
-        cravingEvery: 5000, // koliko često se mijenja želja (ms)
-        spawnRate: 1100,
-        lifetime: 1700,
-        maxOnScreen: 4,
-        weights: { matija: 45, maltezer: 13, hrana: 42 },
-    },
-    {
-        id: 3,
-        name: 'Gdje je Matija?',
-        intro: 'Cilj: 10 bonkova. Ako ne uspiješ — niko ti neće ništa. Skoro.',
-        duration: 18,
-        elements: ['matija', 'maltezer', 'hrana'],
-        hasCravings: true,
-        cravingEvery: 5000,
-        targetBonks: 10,
-        spawnRate: 900,
-        lifetime: 1400,
-        maxOnScreen: 5,
-        weights: { matija: 62, maltezer: 12, hrana: 26 },
-    },
-    {
-        id: 4,
-        name: 'Ne vjeruj bratu',
-        intro: 'Filip ulazi u igru — a stiglo je i vino. Ništa što kaže nije provjereno.',
-        duration: 18,
-        elements: ['matija', 'maltezer', 'hrana', 'vino', 'filip'],
-        hasCravings: true,
-        cravingEvery: 4500,
-        spawnRate: 800,
-        lifetime: 1300,
-        maxOnScreen: 5,
-        weights: { matija: 36, maltezer: 9, hrana: 19, vino: 14, filip: 22 },
-    },
-    {
-        id: 5,
-        name: 'Porodični haos',
-        intro: 'Ana se pojavljuje. NE KLIKĆI ANU. Ozbiljni smo.',
-        duration: 20,
-        elements: ['matija', 'maltezer', 'hrana', 'vino', 'filip', 'ana'],
-        hasCravings: true,
-        cravingEvery: 4500,
-        spawnRate: 700,
-        lifetime: 1200,
-        maxOnScreen: 6,
-        weights: { matija: 32, maltezer: 8, hrana: 17, vino: 14, filip: 23, ana: 6 },
-    },
-    {
-        id: 6,
-        name: 'Zvanična snajka',
-        intro: 'Finale. Svi su tu. Sretno.',
-        duration: 20,
-        elements: ['matija', 'maltezer', 'hrana', 'vino', 'filip', 'ana'],
-        hasCravings: true,
-        cravingEvery: 4000,
-        spawnRate: 600,
-        lifetime: 1100,
-        maxOnScreen: 6,
-        weights: { matija: 30, maltezer: 7, hrana: 16, vino: 16, filip: 24, ana: 7 },
-    },
-];
-
-// Poruka na prelaznom ekranu (index = upravo završeni nivo).
-export const LEVEL_COMPLETE_MESSAGES = [
-    'Osnovna obuka položena. 🔓 Otključan nivo 2.',
-    'Želje ispoštovane. 🔓 Otključan nivo 3.',
-    'Matija je pronađen (uglavnom). 🔓 Otključan nivo 4.',
-    'Bratu se ne vjeruje. Lekcija naučena. 🔓 Otključan nivo 5.',
-    'Haos je izdržan. 🔓 Otključan nivo 6 — finale!',
-    'To je to. Svi nivoi završeni!',
+// Pragovi za combo u operaciji 02 (uzastopni pogoci Matije).
+export const COMBO_STEPS = [
+  { hits: 5, text: 'MATIJA SE ZAPITAO ŠTA JE SKRIVIO' },
+  { hits: 10, text: 'OVO JE VEĆ LIČNO' },
+  { hits: 15, text: 'NEKO DA POZOVE POMOĆ' },
 ];
 
 // ---------------------------------------------------------------------------
-//  5) FILIP — nepredvidivi element (ponašanje se bira nasumično pri pojavljivanju)
+//  4) OPĆE PODEŠAVANJE
 // ---------------------------------------------------------------------------
 
-// Kad se Filip pojavi, nasumično se bira jedna linija iz ovog niza.
-// `effect` govori glavnoj logici šta ta linija radi — dodavanje nove fore
-// bez efekta na skor je samo novi red sa effect: 'none'.
+export const TUNING = {
+  tickMs: 100, // otkucaj game loopa
+  spawnJitter: 0.2, // ±20% varijacije razmaka, da ritam ne bude mehanički
+  lifetimeJitter: 0.15,
+  minSpotDistance: 22, // najmanji razmak između elemenata (% polja)
+  nearMissRadius: 15, // koliko blizu opasnog elementa se tap računa kao "za dlaku"
+  nearMissCooldownMs: 1400,
+  countdownFrom: 5, // odbrojavanje na kraju završne operacije
+  anaSafeDistance: 26, // Ana ne smije iskočiti preko drugog elementa
+};
+
+// ---------------------------------------------------------------------------
+//  5) OPERACIJE
 //
-//   'none'     — klik na Filipa nema ni kazne ni bonusa, samo nestane
-//   'lijevo'   — test povjerenja: ignoriši ga i klikni element LIJEVO (+2),
-//                klikneš li njega (-2)
-//   'anaZamka' — mami te da klikneš Anu (= kraj igre); klik na njega nema efekta
+//  pacing — tempo raste UNUTAR operacije: interval i trajanje se linearno
+//           kreću od "start" prema "end" vrijednostima kako vrijeme prolazi.
+//    interval  [od, do]  ms između pojavljivanja
+//    lifetime  [od, do]  ms koliko element ostaje na ekranu
+//    maxOnScreen [od, do] najviše elemenata istovremeno
+//
+//  phases — samo završna operacija: mijenja skup elemenata kroz vrijeme.
+// ---------------------------------------------------------------------------
+
+export const OPERATIONS = [
+  {
+    id: 1,
+    code: '01',
+    name: 'UPOZNAJ MATERIJAL',
+    duration: 20,
+    intro: [
+      'Za početak ništa komplikovano.',
+      '👨 Matija — udari ga.',
+      '🐶 Nićko — pomazi ga.',
+      '🍕 Hrana — uzmi je.',
+    ],
+    elements: ['matija', 'nicko', 'hrana'],
+    weights: { matija: 50, nicko: 22, hrana: 28 },
+    pacing: { interval: [1500, 1000], lifetime: [2100, 1600], maxOnScreen: [2, 4] },
+    tutorial: 'osnove',
+    resultTitle: 'OPERACIJA ZAVRŠENA',
+    resultText: ['Dobro.', 'Osnovne stvari su savladane.', 'Matija je preživio. Nićko je zadovoljan.'],
+  },
+  {
+    id: 2,
+    code: '02',
+    name: 'UDRI MATIJU!',
+    duration: 25,
+    intro: [
+      'Imaš 25 sekundi.',
+      'Što više puta ga udariš — više bodova.',
+      'Ne razmišljaj. Samo udaraj. 😈',
+    ],
+    elements: ['matija', 'nicko', 'hrana'],
+    weights: { matija: 74, nicko: 12, hrana: 14 },
+    pacing: { interval: [1150, 620], lifetime: [1700, 1150], maxOnScreen: [3, 5] },
+    hasCombo: true,
+    tutorial: 'udri',
+    resultTitle: 'OPERACIJA ZAVRŠENA',
+  },
+  {
+    id: 3,
+    code: '03',
+    name: 'TRUDNIČKE ŽELJE',
+    duration: 25,
+    intro: [
+      'Stanje se mijenja.',
+      'Trenutno postoji samo jedna ispravna želja.',
+      'Prati šta se traži i reaguj brzo.',
+      'Pogrešna hrana se ne računa. 😌',
+    ],
+    elements: ['matija', 'nicko', 'hrana'],
+    weights: { matija: 26, nicko: 10, hrana: 64 },
+    pacing: { interval: [1250, 780], lifetime: [2000, 1450], maxOnScreen: [3, 5] },
+    hasCravings: true,
+    cravingEvery: 5500,
+    tutorial: 'zelje',
+    resultTitle: 'OPERACIJA ZAVRŠENA',
+    resultText: ['Dobro.', 'Glad je zadovoljena. Za sada.'],
+  },
+  {
+    id: 4,
+    code: '04',
+    name: 'DA LI FILIP LAŽE?',
+    duration: 28,
+    intro: [
+      'Filip će ti davati savjete.',
+      'Nekad će biti u pravu. Nekad neće.',
+      'Ti odlučuješ da li mu vjeruješ.',
+      'Srećno. 😂',
+    ],
+    elements: ['matija', 'filip', 'vino'],
+    weights: { matija: 42, filip: 34, vino: 24 },
+    pacing: { interval: [1500, 1000], lifetime: [2200, 1700], maxOnScreen: [3, 4] },
+    filipTruthChance: 0.6, // 60% istina, 40% laž
+    tutorial: 'filip',
+    resultTitle: 'OPERACIJA ZAVRŠENA',
+  },
+  {
+    id: 5,
+    code: '05',
+    name: 'PORODIČNI HAOS',
+    duration: 30,
+    intro: [
+      'Sada znaš sva pravila.',
+      '👨 Matija — UDARI',
+      '🐶 Nićko — POMAZI',
+      '🍕 Hrana — POGODI ŽELJU',
+      '🍷 Vino — NE DIRAJ',
+      '👨‍🦱 Filip — NE VJERUJ MU BAŠ',
+      '👩 Ana — NE DIRAJ ANU',
+    ],
+    warning: 'Ako klikneš Anu — GAME OVER.',
+    startLabel: 'POKRENI ZAVRŠNU OPERACIJU',
+    hasCravings: true,
+    cravingEvery: 6000,
+    filipTruthChance: 0.55,
+    hasCountdown: true,
+    // Tri faze: kontrola → haos počinje → puni haos.
+    phases: [
+      {
+        until: 10,
+        label: 'SVE JE POD KONTROLOM',
+        elements: ['matija', 'nicko', 'hrana'],
+        weights: { matija: 40, nicko: 18, hrana: 42 },
+        pacing: { interval: [1400, 1050], lifetime: [2000, 1650], maxOnScreen: [3, 4] },
+      },
+      {
+        until: 20,
+        label: 'DOBRO, POČINJE HAOS',
+        elements: ['matija', 'nicko', 'hrana', 'filip', 'vino'],
+        weights: { matija: 30, nicko: 10, hrana: 26, filip: 20, vino: 14 },
+        pacing: { interval: [1000, 780], lifetime: [1700, 1400], maxOnScreen: [4, 5] },
+      },
+      {
+        until: 30,
+        label: 'PORODIČNI HAOS',
+        elements: ['matija', 'nicko', 'hrana', 'filip', 'vino', 'ana'],
+        weights: { matija: 28, nicko: 8, hrana: 22, filip: 18, vino: 14, ana: 10 },
+        pacing: { interval: [820, 620], lifetime: [1500, 1250], maxOnScreen: [5, 6] },
+      },
+    ],
+    tutorial: null, // sve mehanike su već demonstrirane
+    resultTitle: 'OPERACIJA ZAVRŠENA!',
+  },
+];
+
+// ---------------------------------------------------------------------------
+//  6) FILIP — izjave
+//
+//  kind: 'smjer'   — tvrdi gdje je Matija; sistem stvarno postavi Matiju
+//                    na tu ili suprotnu stranu, zavisno od toga laže li
+//        'smjerAna'— isto, ali za Anu (samo završna operacija)
+//        'sala'    — čista fora, bez uticaja na polje
+//
+//  side: 'lijevo' | 'desno' — strana koju tvrdi
+// ---------------------------------------------------------------------------
+
 export const FILIP_LINES = [
-    { key: 'besmislica', text: 'Ne znam šta radim ovdje.', effect: 'none' },
-    { key: 'lijevo', text: 'Matija je lijevo, vjeruj mi.', effect: 'lijevo' },
-    { key: 'anaZamka', text: 'Klikni Anu, vjeruj mi.', effect: 'anaZamka' },
-    { key: 'hrce', text: 'Matija hrče.', effect: 'none' },
+  { kind: 'smjer', side: 'lijevo', text: 'Matija je lijevo, vjeruj mi.' },
+  { kind: 'smjer', side: 'desno', text: 'Matija je desno, kunem se.' },
+  { kind: 'smjer', side: 'lijevo', text: 'Matija je tamo lijevo, vjeruj mi.' },
+  { kind: 'smjer', side: 'desno', text: 'Ja bih na tvom mjestu gledala desno.' },
+  { kind: 'smjer', side: 'lijevo', text: 'Matija je ovaj put baš očigledan — lijevo.' },
+  { kind: 'sala', text: 'Ne diraj Matiju, to je zamka.' },
+  { kind: 'sala', text: 'Klikni mene, znam šta radim.' },
+  { kind: 'sala', text: 'Vjeruj mi.' },
+  { kind: 'sala', text: 'Ne znam šta radim ovdje.' },
+  { kind: 'sala', text: 'Matija je iza tebe.' },
+  { kind: 'sala', text: 'Nemoj kliknuti Matiju.' },
+  { kind: 'sala', text: 'Klikni mene, imam plan.' },
+];
+
+// Izjave o Ani — samo u završnoj operaciji, kad je Ana u igri.
+export const FILIP_ANA_LINES = [
+  { kind: 'sala', text: 'Ana je lijevo.' },
+  { kind: 'sala', text: 'Ana nije tu.' },
+  { kind: 'sala', text: 'Slobodno klikni, nije Ana.' },
+  { kind: 'sala', text: 'Ana je desno, vjeruj mi.' },
 ];
 
 // ---------------------------------------------------------------------------
-//  6) TITULE na kraju (min = minimalan ukupan skor za tu titulu)
+//  7) ZAVRŠNI REZULTAT — pragovi po ukupnom skoru
 // ---------------------------------------------------------------------------
 
-export const TITLES = [
-    { min: -9999, title: 'IMA JOŠ DA SE RADI', emoji: '🫠', note: 'Porodica je zahtjevna. Vidimo se na treningu.' },
-    { min: 25, title: 'SOLIDAN POČETAK', emoji: '🙂', note: 'Ima potencijala. Matija se već pomalo pribojava.' },
-    { min: 55, title: 'DOBRODOŠLA U EKIPU', emoji: '🤝', note: 'Zvanično te niko više ne smatra gostom.' },
-    { min: 90, title: 'ZVANIČNA SNAJKA', emoji: '👑', note: 'Papiri potpisani, refleksi provjereni.' },
-    { min: 130, title: 'GLAVNA U PORODICI', emoji: '🏆', note: 'Od danas se sve pita tebe. Izvinjavamo se braći.' },
+export const FINAL_RESULTS = [
+  {
+    min: 121,
+    title: 'POKIDALA SI. 👑',
+    lines: [
+      'Matija nema komentar.',
+      'Filip se pravi da je sve bilo namjerno.',
+      'Ana je ljuta.',
+      'Nićko te obožava.',
+    ],
+    closing: 'Mislim da si se savršeno uklopila. ❤️',
+  },
+  {
+    min: 91,
+    title: 'ZVANIČNA SNAJKA.',
+    lines: ['Sve si pohvatala.', 'Znaš koga treba udariti, šta treba pojesti i kome ne treba vjerovati.'],
+    closing: 'Spremna si. ❤️',
+  },
+  {
+    min: 61,
+    title: 'OVO VEĆ LIČI NA NEŠTO.',
+    lines: ['Matija je stradao, Filip nije baš uspio da te prevesla, a Ana te nije uhvatila.'],
+    closing: 'Dobro nam ide. ❤️',
+  },
+  {
+    min: 31,
+    title: 'SOLIDNO.',
+    lines: ['Nisi pokidala, ali si se snašla.'],
+    closing: 'Za prvi put — sasvim dovoljno. ❤️',
+  },
+  {
+    min: -9999,
+    title: 'DOBRO JE, TEK SI STIGLA.',
+    lines: ['Nije bilo baš za medalju, ali imaš vremena da se uigraš.'],
+    closing: 'Mi te svakako primamo. ❤️',
+  },
 ];
 
-export const FINAL_MESSAGE = 'DOBRODOŠLA U PORODICU. IZVINJAVAMO SE UNAPRIJED. 😂❤️';
+export const FINAL_FOOTER = ['Rezultat je manje važan.', 'Snajka je prihvaćena. ❤️'];
+export const FINAL_WELCOME = ['DOBRODOŠLA U PORODICU.', 'IZVINJAVAMO SE UNAPRIJED. 😂'];
+
+// Rezultat operacije 02 zavisi od broja udaraca.
+export const BONK_VERDICTS = [
+  { min: 22, text: 'MATIJA ĆE OVO PAMTITI.' },
+  { min: 12, text: 'MATIJA JE DOBIO SVOJE. ZA SAD.' },
+  { min: -1, text: 'MATIJA SE IZVUKAO. OVOG PUTA.' },
+];

@@ -541,6 +541,63 @@ function finalFanfare() {
   return finish(buf, 0.88);
 }
 
+
+/** ✦ Start igre — kratka zlatna fanfara od dva tona. */
+function startChime() {
+  const buf = buffer(0.85);
+  [NOTE.G4, NOTE.C5, NOTE.E5].forEach((f, i) => {
+    tone(buf, {
+      start: i * 0.09,
+      duration: i === 2 ? 0.55 : 0.22,
+      freq: f,
+      gain: 0.34,
+      wave: 'triangle',
+      env: (t, p) => Math.min(1, p * 12) * decay(t, i === 2 ? 3.4 : 8),
+    });
+  });
+  reverb(buf, { delay: 0.06, feedback: 0.3, taps: 3 });
+  return finish(buf, 0.8);
+}
+
+/** ✦ Combo — uzlazni triler, nagrada za niz. */
+function comboChime() {
+  const buf = buffer(0.6);
+  [NOTE.C5, NOTE.E5, NOTE.G5, NOTE.C6].forEach((f, i) => {
+    tone(buf, {
+      start: i * 0.055,
+      duration: 0.26,
+      freq: f,
+      gain: 0.3,
+      wave: 'triangle',
+      env: (t, p) => Math.min(1, p * 16) * decay(t, 7),
+    });
+  });
+  reverb(buf, { delay: 0.045, feedback: 0.25, taps: 3 });
+  return finish(buf, 0.78);
+}
+
+/** ✦ Za dlaku — kratko zujanje koje se povuče, napetost bez kazne. */
+function nearMiss() {
+  const buf = buffer(0.45);
+  tone(buf, {
+    duration: 0.34,
+    freq: (t, p) => glide(760, 300, p),
+    gain: 0.4,
+    wave: 'sine',
+    env: (t, p) => Math.sin(Math.min(1, p) * Math.PI) * 0.9,
+  });
+  noise(buf, { duration: 0.1, gain: 0.14, lowpass: 2200, env: (t) => decay(t, 26) });
+  return finish(buf, 0.6);
+}
+
+/** ✦ Otkucaj odbrojavanja. */
+function countdownTick() {
+  const buf = buffer(0.3);
+  tone(buf, { duration: 0.1, freq: 1180, gain: 0.5, wave: 'sine', env: (t) => decay(t, 40) });
+  tone(buf, { duration: 0.2, freq: 590, gain: 0.35, wave: 'triangle', env: (t) => decay(t, 16) });
+  return finish(buf, 0.72);
+}
+
 // --- pokretanje ---------------------------------------------------------------
 
 // Funkcije malteseAv() i foodNjam() namjerno NISU u ovoj listi — zamijenjene su
@@ -548,6 +605,10 @@ function finalFanfare() {
 // red ovdje ako ikad zatreba sintetička verzija.
 const SOUNDS = {
   // Udarac — cartoon varijanta (glasovni jauci su pravi snimci, scream*.mp3)
+  'start.wav': startChime,
+  'combo.wav': comboChime,
+  'near-miss.wav': nearMiss,
+  'countdown.wav': countdownTick,
   'bonk.wav': bonk,
   // Pas — cijuk (dahtanje je pravi snimak, maltese-panting.mp3)
   'maltese.wav': maltese,

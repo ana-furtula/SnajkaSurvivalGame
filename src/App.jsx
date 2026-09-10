@@ -1,77 +1,140 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { LEVELS, SCORES, FOODS } from './config.js';
-import { createEntity, pickType } from './entities.js';
-import { randomFrom, randomInt, nextId } from './utils.js';
+import {
+  OPERATIONS,
+  SCORES,
+  COMBO_STEPS,
+  TUNING,
+  FOODS,
+  FILIP_LINES,
+  FILIP_ANA_LINES,
+} from './config.js';
+import { createEntity } from './entities.js';
+import { randomFrom, randomInt, pickWeighted, nextId, lerp, otherSide } from './utils.js';
 import { playSound, setMuted as setAudioMuted, warmUpSounds } from './audio.js';
 
 import Hud from './components/Hud.jsx';
-import MuteButton from './components/MuteButton.jsx';
 import Entity from './components/Entity.jsx';
 import FloatingText from './components/FloatingText.jsx';
 import StarBurst from './components/StarBurst.jsx';
-import TitleScreen from './screens/TitleScreen.jsx';
-import LevelCompleteScreen from './screens/LevelCompleteScreen.jsx';
+import Banner from './components/Banner.jsx';
+import Countdown from './components/Countdown.jsx';
+import MuteButton from './components/MuteButton.jsx';
+import StartScreen from './screens/StartScreen.jsx';
+import OperationIntro from './screens/OperationIntro.jsx';
+import OperationResult from './screens/OperationResult.jsx';
 import GameOverScreen from './screens/GameOverScreen.jsx';
 import FinalScreen from './screens/FinalScreen.jsx';
 
 const EMPTY_STATS = {
-  matija: 0,
-  maltezer: 0,
-  hrana: 0,
-  zelja: 0,
+  bonks: 0,
+  nicko: 0,
+  cravingsHit: 0,
   vino: 0,
-  filipDobar: 0,
-  filipLos: 0,
-  anaIzbjegnuta: 0, // koliko puta se Ana pojavila i nestala bez klika
+  filipTrusted: 0,
+  filipCaught: 0,
 };
 
-// Tipovi koji nose bonus kad Filip kaže "Matija je lijevo" (vino i Ana su izuzeti —
-// zamke ostaju zamke, bonus ih ne smije isplatiti).
-const LEFT_BONUS_TYPES = ['matija', 'hrana', 'maltezer'];
+const emptyRun = () => ({
+  startScore: 0,
+  bonks: 0,
+  cravingsHit: 0,
+  filipTruths: 0,
+  filipLies: 0,
+  bestCombo: 0,
+});
 
-const BONK_ANIMATION_MS = 320; // koliko traje animacija nestajanja pri kliku
-const FADE_MS = 260; // koliko traje "tiho" nestajanje kad element istekne
-const FLOAT_MS = 1800; // koliko lebdeća poruka stoji na ekranu (mora se stići pročitati)
-const STARS_MS = 800; // trajanje vijenca zvjezdica oko Matijine glave
-const BANNER_MS = 1900; // koliko velika poruka preko sredine stoji na ekranu
+const BONK_MS = 320; // animacija nestajanja pri kliku
+const FADE_MS = 260; // tiho nestajanje kad istekne vrijeme
+const FLOAT_MS = 1700;
+const STARS_MS = 800;
+const BANNER_MS = 1800;
+
+/** Tempo u datom trenutku — interval i trajanje se kreću od "od" ka "do". */
+function pacingAt(pacing, progress) {
+  return {
+    interval: lerp(pacing.interval[0], pacing.interval[1], progress),
+    lifetime: lerp(pacing.lifetime[0], pacing.lifetime[1], progress),
+    maxOnScreen: Math.round(lerp(pacing.maxOnScreen[0], pacing.maxOnScreen[1], progress)),
+  };
+}
+
+/**
+ * Šta je aktivno u ovom trenutku operacije.
+ * Završna operacija ima faze koje mijenjaju skup elemenata; ostale
+ * imaju jedan skup, ali tempo i dalje raste kroz vrijeme.
+ */
+function stageAt(operation, elapsed) {
+  if (!operation.phases) {
+    return {
+      index: 0,
+      label: null,
+      elements: operation.elements,
+      weights: operation.weights,
+      pacing: operation.pacing,
+      progress: elapsed / operation.duration,
+    };
+  }
+
+  let start = 0;
+  for (let i = 0; i < operation.phases.length; i++) {
+    const phase = operation.phases[i];
+    if (elapsed < phase.until || i === operation.phases.length - 1) {
+      return {
+        index: i,
+        label: phase.label,
+        elements: phase.elements,
+        weights: phase.weights,
+        pacing: phase.pacing,
+        progress: (elapsed - start) / Math.max(1, phase.until - start),
+      };
+    }
+    start = phase.until;
+  }
+  return null;
+}
 
 export default function App() {
-  const [screen, setScreen] = useState('title'); // title | playing | levelComplete | gameOver | final
-  const [levelIndex, setLevelIndex] = useState(0);
-  const [runId, setRunId] = useState(0); // mijenja se pri svakom (re)startu nivoa
+  const [screen, setScreen] = useState('start'); // start | intro | playing | result | gameover | final
+  const [opIndex, setOpIndex] = useState(0);
+  const [runId, setRunId] = useState(0);
 
   const [score, setScore] = useState(0);
-  const [stats, setStats] = useState(EMPTY_STATS);
-  const [bonks, setBonks] = useState(0); // bonkovi u trenutnom nivou (za targetBonks)
+  const [bonks, setBonks] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
 
   const [entities, setEntities] = useState([]);
   const [floats, setFloats] = useState([]);
-  const [stars, setStars] = useState([]); // vijenci zvjezdica na mjestu udarca
+  const [stars, setStars] = useState([]);
+  const [banner, setBanner] = useState(null);
   const [craving, setCraving] = useState(null);
-  const [cravingId, setCravingId] = useState(0); // raste pri svakoj novoj želji
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [banner, setBanner] = useState(null); // velika poruka preko sredine
-  const [hurt, setHurt] = useState(false); // crveni bljesak kad se klikne Ana
-  const [muted, setMuted] = useState(false); // zvuk uključen/isključen (samo za ovu sesiju)
+  const [cravingId, setCravingId] = useState(0);
+  const [countdown, setCountdown] = useState(null);
+  const [hurt, setHurt] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [runSnapshot, setRunSnapshot] = useState(emptyRun());
+  const [anaAvoided, setAnaAvoided] = useState(true);
 
-  // Modul za zvuk drži svoju kopiju zastavice, da ga game loop može zvati bez propsa.
-  useEffect(() => {
-    setAudioMuted(muted);
-  }, [muted]);
+  const operation = OPERATIONS[opIndex];
 
-  const level = LEVELS[levelIndex];
-
-  // --- Reference: stvari koje game loop mora čitati bez čekanja na re-render ---
-  const entitiesRef = useRef([]); // izvor istine za elemente
+  // --- Vrijednosti koje petlja mora čitati bez čekanja na re-render ---
+  const scoreRef = useRef(0);
+  const bonksRef = useRef(0);
+  const comboRef = useRef(0);
+  const statsRef = useRef({ ...EMPTY_STATS });
+  const runRef = useRef(emptyRun());
+  const entitiesRef = useRef([]);
   const cravingRef = useRef(null);
-  const leftBonusUntilRef = useRef(0); // dokle važi Filipovo "Matija je lijevo"
-  const bannerIdRef = useRef(0); // id trenutne velike poruke
-  const levelEndedRef = useRef(false); // da se kraj nivoa ne okine dvaput
-  const endingRef = useRef(false); // igra se gasi (Ana kliknuta) — ignoriši klikove
-  const levelStartScoreRef = useRef(0); // skor na početku nivoa (za prelazni ekran)
-  const timersRef = useRef(new Set()); // svi setTimeout-ovi, da ih možemo počistiti
+  const pendingCravingRef = useRef(null); // garantuje da se željena hrana pojavi
+  const filipClaimRef = useRef(null); // aktivna Filipova tvrdnja o smjeru
+  const bannerIdRef = useRef(0);
+  const endedRef = useRef(false);
+  const endingRef = useRef(false);
+  const nearMissAtRef = useRef(0);
+  const lastTickSecRef = useRef(null);
+  const timersRef = useRef(new Set());
+  const fieldRef = useRef(null);
 
-  /** setTimeout koji se sam evidentira, pa ga cleanup može otkazati. */
   const later = useCallback((fn, ms) => {
     const id = setTimeout(() => {
       timersRef.current.delete(id);
@@ -88,23 +151,29 @@ export default function App() {
 
   useEffect(() => clearTimers, [clearTimers]);
 
-  /** Jedina tačka kroz koju se mijenjaju elementi — drži ref i state u sinhronu. */
+  useEffect(() => {
+    setAudioMuted(muted);
+  }, [muted]);
+
   const updateEntities = useCallback((updater) => {
     entitiesRef.current = updater(entitiesRef.current);
     setEntities(entitiesRef.current);
   }, []);
 
+  const addScore = useCallback((delta) => {
+    scoreRef.current += delta;
+    setScore(scoreRef.current);
+  }, []);
+
   const showFloat = useCallback(
-    (x, y, text, tone) => {
+    (x, y, text, tone = 'good') => {
       const id = nextId();
-      // Najviše 4 poruke odjednom — inače se pri brzom tapkanju preklope.
       setFloats((prev) => [...prev.slice(-3), { id, x, y, text, tone }]);
       later(() => setFloats((prev) => prev.filter((f) => f.id !== id)), FLOAT_MS);
     },
     [later]
   );
 
-  /** Zvjezdice oko glave — samo za Matiju, na mjestu udarca. */
   const showStars = useCallback(
     (x, y) => {
       const id = nextId();
@@ -115,8 +184,7 @@ export default function App() {
   );
 
   const showBanner = useCallback(
-    (text, tone = 'bad', ms = BANNER_MS) => {
-      // Svaka poruka nosi svoj id, pa tajmer stare poruke ne može ugasiti novu.
+    (text, tone = 'info', ms = BANNER_MS) => {
       const id = nextId();
       bannerIdRef.current = id;
       setBanner({ id, text, tone });
@@ -128,312 +196,461 @@ export default function App() {
   );
 
   // ------------------------------------------------------------------
-  //  POKRETANJE NIVOA
+  //  TOK IGRE
   // ------------------------------------------------------------------
 
-  const startLevel = useCallback(
-    (index, { keepProgress = true } = {}) => {
-      const next = LEVELS[index];
-      clearTimers();
-
-      if (!keepProgress) {
-        setScore(0);
-        setStats(EMPTY_STATS);
-        levelStartScoreRef.current = 0;
-      }
-
-      entitiesRef.current = [];
-      setEntities([]);
-      setFloats([]);
-      setStars([]);
-      setBanner(null);
-      setBonks(0);
-      setHurt(false);
-      setTimeLeft(next.duration);
-      levelEndedRef.current = false;
-      endingRef.current = false;
-      leftBonusUntilRef.current = 0;
-
-      const firstCraving = next.hasCravings ? randomFrom(FOODS) : null;
-      cravingRef.current = firstCraving;
-      setCraving(firstCraving);
-      setCravingId((n) => n + 1);
-
-      setLevelIndex(index);
-      setRunId((n) => n + 1);
-      setScreen('playing');
-    },
-    [clearTimers]
-  );
-
-  /** Pamti skor na početku nivoa — samo da prelazni ekran zna koliko je taj nivo donio. */
-  useEffect(() => {
-    if (screen !== 'playing') return;
-    levelStartScoreRef.current = score;
-    // Namjerno bez `score` u dependency nizu: pamti se samo početak nivoa,
-    // a ne svaka promjena skora.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [runId, screen]);
+  const resetGame = useCallback(() => {
+    clearTimers();
+    scoreRef.current = 0;
+    statsRef.current = { ...EMPTY_STATS };
+    setScore(0);
+    setAnaAvoided(true);
+    setOpIndex(0);
+    setScreen('intro');
+  }, [clearTimers]);
 
   const startGame = useCallback(() => {
-    // Prvi klik je i "dozvola" browsera za zvuk — tu učitavamo fajlove.
+    // Prvi klik je i dozvola browsera za zvuk.
     warmUpSounds();
-    startLevel(0, { keepProgress: false });
-  }, [startLevel]);
+    playSound('start');
+    resetGame();
+  }, [resetGame]);
 
-  const goToNext = useCallback(() => {
-    if (levelIndex + 1 < LEVELS.length) {
-      startLevel(levelIndex + 1);
+  /** Nova želja; nikad ista kao prethodna, i garantovano se pojavi na polju. */
+  const rollCraving = useCallback(
+    (now, announce) => {
+      const options = FOODS.filter((f) => f.key !== cravingRef.current?.key);
+      const next = randomFrom(options.length ? options : FOODS);
+      cravingRef.current = next;
+      setCraving(next);
+      setCravingId((n) => n + 1);
+
+      // Planiramo spawn rano u prozoru želje i držimo tvrdi rok:
+      // HUD nikad ne smije tražiti hranu koja se ne pojavi.
+      const window = operation.cravingEvery ?? 5500;
+      pendingCravingRef.current = {
+        key: next.key,
+        plannedAt: now + randomInt(250, Math.round(window * 0.3)),
+        deadline: now + window * 0.72,
+        spawned: false,
+        hit: false,
+      };
+
+      if (announce) showBanner(`Nova želja: ${next.emoji} ${next.name}`, 'info', 1400);
+    },
+    [operation, showBanner]
+  );
+
+  const startOperation = useCallback(() => {
+    clearTimers();
+    entitiesRef.current = [];
+    setEntities([]);
+    setFloats([]);
+    setStars([]);
+    setBanner(null);
+    setCountdown(null);
+    setHurt(false);
+
+    bonksRef.current = 0;
+    comboRef.current = 0;
+    setBonks(0);
+    setCombo(0);
+
+    runRef.current = { ...emptyRun(), startScore: scoreRef.current };
+    filipClaimRef.current = null;
+    pendingCravingRef.current = null;
+    cravingRef.current = null;
+    nearMissAtRef.current = 0;
+    lastTickSecRef.current = null;
+    endedRef.current = false;
+    endingRef.current = false;
+
+    setCraving(null);
+    setTimeLeft(operation.duration);
+
+    if (operation.hasCravings) rollCraving(performance.now(), false);
+
+    setRunId((n) => n + 1);
+    setScreen('playing');
+  }, [clearTimers, operation, rollCraving]);
+
+  const finishOperation = useCallback(() => {
+    endedRef.current = true;
+    playSound('operationDone');
+    setRunSnapshot({
+      ...runRef.current,
+      score: scoreRef.current - runRef.current.startScore,
+      bonks: bonksRef.current,
+      bestCombo: runRef.current.bestCombo,
+    });
+    setScreen('result');
+  }, []);
+
+  const goNext = useCallback(() => {
+    if (opIndex + 1 < OPERATIONS.length) {
+      setOpIndex(opIndex + 1);
+      setScreen('intro');
     } else {
       clearTimers();
       setScreen('final');
     }
-  }, [levelIndex, startLevel, clearTimers]);
+  }, [opIndex, clearTimers]);
 
+  const anaGameOver = useCallback(() => {
+    endedRef.current = true;
+    endingRef.current = true;
+    setAnaAvoided(false);
+    setHurt(true);
+    clearTimers();
+    showBanner('💥 KLIKNULA SI ANU', 'bad', 1600);
+    setTimeout(() => showBanner('UH-OH', 'bad', 1200), 800);
+    setTimeout(() => setScreen('gameover'), 1700);
+  }, [clearTimers, showBanner]);
 
   // ------------------------------------------------------------------
-  //  GLAVNA PETLJA: vrijeme, nestajanje i pojavljivanje elemenata
+  //  GLAVNA PETLJA
   // ------------------------------------------------------------------
 
   useEffect(() => {
     if (screen !== 'playing') return undefined;
 
-    const cfg = LEVELS[levelIndex];
+    const op = OPERATIONS[opIndex];
     const startedAt = performance.now();
-    let nextSpawnAt = startedAt + 400;
+    let nextSpawnAt = startedAt + 700; // prvi element ne iskače istog trena
+    let lastPhase = -1;
+    let lastCravingAt = startedAt;
 
-    const spawnOne = (alive, now) => {
-      const type = pickType(cfg);
-      const entity = createEntity(type, cfg, alive, now);
+    /** Filipova izjava + posljedice na polju. */
+    const spawnFilip = (alive, now, lifetime, anaInPlay) => {
+      const line =
+        anaInPlay && Math.random() < 0.35 ? randomFrom(FILIP_ANA_LINES) : randomFrom(FILIP_LINES);
 
-      if (type !== 'filip') return [...alive, entity];
+      playSound('filip');
 
-      playSound('filip'); // signal da dolazi nešto sumnjivo
-
-      // "Matija je lijevo, vjeruj mi." — da fora ima smisla, garantovano
-      // spawnamo jedan element u lijevoj polovini polja. Dok je Filip tu,
-      // klik na bilo šta lijevo nosi bonus.
-      if (entity.behavior === 'lijevo') {
-        leftBonusUntilRef.current = entity.expiresAt;
-        const leftType = cfg.elements.includes('matija')
-          ? 'matija'
-          : randomFrom(LEFT_BONUS_TYPES.filter((t) => cfg.elements.includes(t)));
-        const companion = {
-          ...createEntity(leftType, cfg, [...alive, entity], now),
-          x: randomInt(8, 42), // lijeva polovina
-          expiresAt: entity.expiresAt,
-        };
-        return [...alive, entity, companion];
+      if (line.kind !== 'smjer') {
+        return [createEntity('filip', { existing: alive, now, lifetime, line })];
       }
 
-      // "Klikni Anu, vjeruj mi." — zamka radi samo ako Ana zaista postoji
-      // na ekranu, pa je na nivoima gdje se pojavljuje odmah izvedemo.
-      if (entity.behavior === 'anaZamka' && cfg.elements.includes('ana')) {
-        const ana = {
-          ...createEntity('ana', cfg, [...alive, entity], now),
-          expiresAt: entity.expiresAt,
-        };
-        return [...alive, entity, ana];
+      // Tvrdi gdje je Matija — sistem stvarno postavi Matiju na tu ili
+      // suprotnu stranu. Filip stoji nasuprot svojoj tvrdnji.
+      const truth = Math.random() < (op.filipTruthChance ?? 0.6);
+      const matijaSide = truth ? line.side : otherSide(line.side);
+
+      const filip = createEntity('filip', {
+        existing: alive,
+        now,
+        lifetime: lifetime + 300,
+        side: otherSide(line.side),
+        line,
+      });
+
+      const matija = createEntity('matija', {
+        existing: [...alive, filip],
+        now,
+        lifetime: lifetime + 300,
+        side: matijaSide,
+      });
+
+      filipClaimRef.current = {
+        truth,
+        matijaId: matija.id,
+        until: matija.expiresAt,
+      };
+
+      if (truth) runRef.current.filipTruths += 1;
+      else runRef.current.filipLies += 1;
+
+      return [filip, matija];
+    };
+
+    const spawnOne = (alive, now, stage, pace) => {
+      const pending = pendingCravingRef.current;
+
+      // Garantovani spawn trenutne želje — prije nego što prozor istekne.
+      if (
+        pending &&
+        !pending.spawned &&
+        stage.elements.includes('hrana') &&
+        now >= pending.plannedAt
+      ) {
+        pending.spawned = true;
+        return [
+          createEntity('hrana', {
+            existing: alive,
+            now,
+            // Željena hrana stoji duže — mora se realno stići uočiti i kliknuti.
+            lifetime: pace.lifetime * 1.35,
+            food: pending.key,
+          }),
+        ];
       }
 
-      return [...alive, entity];
+      const type = pickWeighted(stage.weights, stage.elements);
+
+      if (type === 'filip') {
+        return spawnFilip(alive, now, pace.lifetime, stage.elements.includes('ana'));
+      }
+
+      return [createEntity(type, { existing: alive, now, lifetime: pace.lifetime })];
     };
 
     const tick = () => {
       const now = performance.now();
-      const remaining = Math.max(0, Math.ceil(cfg.duration - (now - startedAt) / 1000));
+      const elapsed = (now - startedAt) / 1000;
+      const remaining = Math.max(0, Math.ceil(op.duration - elapsed));
       setTimeLeft(remaining);
 
-      let anaSurvived = 0; // Ana koje su nestale a da nisu kliknute
+      if (endingRef.current) return;
+
+      const stage = stageAt(op, elapsed);
+      const pace = pacingAt(stage.pacing, stage.progress);
+
+      // Najava nove faze (samo završna operacija).
+      if (stage.label && stage.index !== lastPhase) {
+        lastPhase = stage.index;
+        if (stage.index > 0) showBanner(stage.label, 'phase', 1600);
+      }
+
+      // Odbrojavanje pred kraj.
+      if (op.hasCountdown && remaining <= TUNING.countdownFrom && remaining > 0) {
+        if (lastTickSecRef.current !== remaining) {
+          lastTickSecRef.current = remaining;
+          setCountdown(remaining);
+          playSound('countdown');
+        }
+      }
+
+      // Rotacija želje.
+      if (op.hasCravings && now - lastCravingAt >= (op.cravingEvery ?? 5500)) {
+        lastCravingAt = now;
+        const pending = pendingCravingRef.current;
+        if (pending && !pending.hit) runRef.current.cravingsMissed = (runRef.current.cravingsMissed ?? 0) + 1;
+        rollCraving(now, true);
+      }
 
       updateEntities((prev) => {
-        // Element kome je isteklo vrijeme prvo dobije animaciju nestajanja
-        // (expiring), pa se tek onda briše — da ne "trepne" sa ekrana.
         let alive = prev
           .filter((e) => now < e.expiresAt + FADE_MS)
           .map((e) => {
             if (e.dying || e.expiring || now < e.expiresAt) return e;
-            if (e.type === 'ana') anaSurvived += 1;
-            return { ...e, expiring: true, label: null };
+            // Propušten Matija prekida niz.
+            if (e.type === 'matija' && op.hasCombo && comboRef.current > 0) {
+              comboRef.current = 0;
+              setCombo(0);
+            }
+            return { ...e, expiring: true, line: null, highlight: false };
           });
 
         const active = alive.filter((e) => !e.dying && !e.expiring).length;
 
         if (now >= nextSpawnAt) {
-          if (active < cfg.maxOnScreen) {
-            // Razmak varira ±25% da ritam ne bude mehanički.
-            nextSpawnAt = now + cfg.spawnRate * (0.75 + Math.random() * 0.5);
-            alive = spawnOne(alive, now);
+          if (active < pace.maxOnScreen) {
+            const jitter = 1 + (Math.random() * 2 - 1) * TUNING.spawnJitter;
+            nextSpawnAt = now + pace.interval * jitter;
+            alive = [...alive, ...spawnOne(alive, now, stage, pace)];
           } else {
-            nextSpawnAt = now + 150; // ekran je pun — probaj opet vrlo brzo
+            nextSpawnAt = now + 150;
           }
         }
+
+        // Tvrdi rok za želju: ako je prozor pri kraju, a hrana se nije pojavila.
+        const pending = pendingCravingRef.current;
+        if (pending && !pending.spawned && now >= pending.deadline && stage.elements.includes('hrana')) {
+          pending.spawned = true;
+          alive = [
+            ...alive,
+            createEntity('hrana', {
+              existing: alive,
+              now,
+              lifetime: pace.lifetime * 1.35,
+              food: pending.key,
+            }),
+          ];
+        }
+
         return alive;
       });
 
-      if (anaSurvived > 0) {
-        setStats((st) => ({ ...st, anaIzbjegnuta: st.anaIzbjegnuta + anaSurvived }));
-      }
-
-      if (remaining <= 0 && !levelEndedRef.current) {
-        levelEndedRef.current = true;
-        playSound('levelComplete');
-        setScreen('levelComplete');
-      }
+      if (remaining <= 0 && !endedRef.current) finishOperation();
     };
 
-    const id = setInterval(tick, 100);
+    const id = setInterval(tick, TUNING.tickMs);
     return () => clearInterval(id);
-  }, [screen, levelIndex, runId, updateEntities]);
+  }, [screen, opIndex, runId, updateEntities, showBanner, rollCraving, finishOperation]);
 
-  // Rotacija "TRENUTNE ŽELJE" na nivoima koji je imaju.
-  useEffect(() => {
-    if (screen !== 'playing' || !level.hasCravings) return undefined;
-
-    const id = setInterval(() => {
-      // Nikad ista želja dva puta zaredom — promjena mora biti očigledna.
-      const options = FOODS.filter((f) => f.key !== cravingRef.current?.key);
-      const next = randomFrom(options.length ? options : FOODS);
-      cravingRef.current = next;
-      setCraving(next);
-      setCravingId((n) => n + 1); // re-montira traku i ponovo pokreće animacije
-      showBanner(`NOVA ŽELJA: ${next.emoji} ${next.name}`, 'info', 1300);
-    }, level.cravingEvery ?? 5000);
-
-    return () => clearInterval(id);
-  }, [screen, levelIndex, runId, level, showBanner]);
-
-  // Kratki uvod u nivo preko ekrana (ne blokira igru).
+  // Uvodna najava operacije preko polja.
   useEffect(() => {
     if (screen !== 'playing') return;
-    showBanner(`NIVO ${level.id}: ${level.name.toUpperCase()}`, 'info', 1900);
+    const op = OPERATIONS[opIndex];
+    const first = op.phases?.[0]?.label;
+    showBanner(first ?? op.name, first ? 'phase' : 'info', 1500);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId, screen]);
 
-  // Automatski prelazak sa prelaznog ekrana nakon 2.6s.
-  useEffect(() => {
-    if (screen !== 'levelComplete') return undefined;
-    const id = setTimeout(goToNext, 2600);
-    return () => clearTimeout(id);
-  }, [screen, goToNext]);
-
   // ------------------------------------------------------------------
-  //  KLIK NA ELEMENT — bodovanje i sve fore
+  //  KLIK NA ELEMENT
   // ------------------------------------------------------------------
 
-  const bump = useCallback((delta, statKey) => {
-    if (delta) setScore((s) => s + delta);
-    if (statKey) setStats((st) => ({ ...st, [statKey]: st[statKey] + 1 }));
+  const bumpCombo = useCallback(() => {
+    comboRef.current += 1;
+    setCombo(comboRef.current);
+    runRef.current.bestCombo = Math.max(runRef.current.bestCombo, comboRef.current);
+
+    const step = COMBO_STEPS.find((s) => s.hits === comboRef.current);
+    if (step) {
+      addScore(SCORES.comboBonus);
+      playSound('combo');
+      showBanner(step.text, 'combo', 1700);
+    }
+  }, [addScore, showBanner]);
+
+  const breakCombo = useCallback(() => {
+    if (comboRef.current > 0) {
+      comboRef.current = 0;
+      setCombo(0);
+    }
   }, []);
-
-  /**
-   * Klik na Anu = trenutni kraj igre. Prvo crveni bljesak i tresak ekrana,
-   * pa tek onda Game Over — da se stigne shvatiti šta se upravo desilo.
-   */
-  const anaGameOver = useCallback(() => {
-    levelEndedRef.current = true;
-    endingRef.current = true; // dalji klikovi se više ne broje
-    setHurt(true);
-    clearTimers();
-    later(() => setScreen('gameOver'), 700);
-  }, [clearTimers, later]);
 
   const handleHit = useCallback(
     (entity) => {
       if (screen !== 'playing' || endingRef.current || entity.dying || entity.expiring) return;
 
-      // Element se odmah "gasi" (animacija), pa se uklanja iz igre.
       updateEntities((prev) =>
-        prev.map((e) => (e.id === entity.id ? { ...e, dying: true, label: null } : e))
+        prev.map((e) => (e.id === entity.id ? { ...e, dying: true, line: null } : e))
       );
-      later(
-        () => updateEntities((prev) => prev.filter((e) => e.id !== entity.id)),
-        BONK_ANIMATION_MS
-      );
+      later(() => updateEntities((prev) => prev.filter((e) => e.id !== entity.id)), BONK_MS);
 
       const { x, y } = entity;
-      const now = performance.now();
-
-      // Filip je rekao "Matija je lijevo" — ako ga ignorišeš i klikneš
-      // element u lijevoj polovini polja, dobijaš mali bonus povrh redovnih bodova.
-      if (
-        now < leftBonusUntilRef.current &&
-        x < 50 &&
-        LEFT_BONUS_TYPES.includes(entity.type)
-      ) {
-        bump(SCORES.filipLijevoBonus, 'filipDobar');
-        // Malo iznad redovne poruke, da se dvije ne preklope.
-        showFloat(x, Math.max(4, y - 14), `👈 LIJEVO! +${SCORES.filipLijevoBonus}`, 'great');
-      }
+      const op = OPERATIONS[opIndex];
 
       switch (entity.type) {
-        case 'matija':
-          bump(SCORES.matija, 'matija');
-          setBonks((b) => b + 1);
+        case 'matija': {
+          const claim = filipClaimRef.current;
+          const isClaimed = claim && claim.matijaId === entity.id && performance.now() < claim.until;
+
+          addScore(SCORES.matija);
+          bonksRef.current += 1;
+          setBonks(bonksRef.current);
+          statsRef.current.bonks += 1;
+          runRef.current.bonks += 1;
           playSound('bonk');
           showStars(x, y);
-          showFloat(x, y, `💥 BONK! +${SCORES.matija}`, 'good');
-          break;
 
-        case 'maltezer':
-          bump(SCORES.maltezer, 'maltezer');
-          playSound('maltezer');
-          showFloat(x, y, `❤️ DOBAR DEČKO! +${SCORES.maltezer}`, 'great');
+          if (isClaimed && claim.truth) {
+            // Poslušala ga je i bio je u pravu.
+            addScore(SCORES.filipPovjerenje);
+            statsRef.current.filipTrusted += 1;
+            showFloat(x, y, `POSLUŠALA SI GA! +${SCORES.matija + SCORES.filipPovjerenje}`, 'great');
+          } else if (isClaimed && !claim.truth) {
+            // Filip je lagao, a Matija je ipak pronađen.
+            statsRef.current.filipCaught += 1;
+            showFloat(x, y, `FILIP JE LAGAO. +${SCORES.matija}`, 'good');
+          } else {
+            showFloat(x, y, `BONK! +${SCORES.matija}`, 'good');
+          }
+
+          if (isClaimed) filipClaimRef.current = null;
+          if (op.hasCombo) bumpCombo();
+          break;
+        }
+
+        case 'nicko':
+          addScore(SCORES.nicko);
+          statsRef.current.nicko += 1;
+          playSound('nicko');
+          showFloat(x, y, `NIĆKO +${SCORES.nicko}`, 'great');
           break;
 
         case 'hrana': {
           const wish = cravingRef.current;
-          if (wish && level.hasCravings) {
+          if (wish && op.hasCravings) {
             if (entity.food === wish.key) {
-              bump(SCORES.hranaZelja, 'zelja');
-              setStats((st) => ({ ...st, hrana: st.hrana + 1 }));
+              addScore(SCORES.hranaZelja);
+              statsRef.current.cravingsHit += 1;
+              runRef.current.cravingsHit += 1;
+              if (pendingCravingRef.current) pendingCravingRef.current.hit = true;
               playSound('hrana');
-              showFloat(x, y, `⭐ BAŠ TO! +${SCORES.hranaZelja}`, 'great');
+              showFloat(x, y, `NJAM! +${SCORES.hranaZelja}`, 'great');
             } else {
-              // Pogrešna hrana dok je želja aktivna — poseban "promašaj" zvuk.
-              bump(SCORES.hranaPogresna, null);
+              addScore(SCORES.hranaPogresna);
               playSound('hranaPogresna');
-              showFloat(x, y, `😒 Nije to. ${SCORES.hranaPogresna}`, 'bad');
+              showFloat(x, y, `NIJE TO. ${SCORES.hranaPogresna}`, 'bad');
+              breakCombo();
             }
           } else {
-            // Nivo bez želja — svaka hrana je dobra hrana.
-            bump(SCORES.hrana, 'hrana');
+            addScore(SCORES.hrana);
             playSound('hrana');
-            showFloat(x, y, `😋 NJAM! +${SCORES.hrana}`, 'good');
+            showFloat(x, y, `NJAM! +${SCORES.hrana}`, 'good');
           }
           break;
         }
 
         case 'vino':
-          bump(SCORES.vino, 'vino');
+          addScore(SCORES.vino);
+          statsRef.current.vino += 1;
           playSound('vino');
-          showFloat(x, y, `${SCORES.vino}`, 'bad');
-          showBanner('🚨 OHO! To trenutno ne smije.', 'bad', 1900);
+          showFloat(x, y, `NE DIRAJ VINO! ${SCORES.vino}`, 'bad');
+          breakCombo();
+          break;
+
+        case 'filip':
+          addScore(SCORES.filipKlik);
+          playSound('vino');
+          showFloat(x, y, `TO JE FILIP. ${SCORES.filipKlik}`, 'bad');
+          breakCombo();
           break;
 
         case 'ana':
           playSound('ana');
-          showBanner('💥 KLIKNULA SI ANU. 😂', 'bad', 2200);
           anaGameOver();
-          break;
-
-        case 'filip':
-          if (entity.behavior === 'lijevo') {
-            // Umjesto da posluša i klikne lijevo — kliknula je njega.
-            leftBonusUntilRef.current = 0;
-            bump(SCORES.filipLijevoKazna, 'filipLos');
-            showFloat(x, y, `🙄 Rekao je "lijevo". ${SCORES.filipLijevoKazna}`, 'bad');
-          } else {
-            // 'none' i 'anaZamka' — Filip samo nestane, bez bodova.
-            showFloat(x, y, '🤷 Ništa se nije desilo.', 'good');
-          }
           break;
 
         default:
           break;
       }
     },
-    [screen, level, updateEntities, later, bump, anaGameOver, showFloat, showStars, showBanner]
+    [screen, opIndex, updateEntities, later, addScore, showFloat, showStars, bumpCombo, breakCombo, anaGameOver]
+  );
+
+  /**
+   * Promašaj u polju: ako je tap pao vrlo blizu opasnog elementa,
+   * to je "za dlaku" — napetost bez kazne.
+   */
+  const handleFieldTap = useCallback(
+    (event) => {
+      if (screen !== 'playing' || endingRef.current) return;
+      const rect = fieldRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const now = performance.now();
+      if (now - nearMissAtRef.current < TUNING.nearMissCooldownMs) return;
+
+      const px = ((event.clientX - rect.left) / rect.width) * 100;
+      const py = ((event.clientY - rect.top) / rect.height) * 100;
+
+      const near = entitiesRef.current.find(
+        (e) =>
+          (e.type === 'vino' || e.type === 'ana') &&
+          !e.dying &&
+          !e.expiring &&
+          Math.hypot(e.x - px, e.y - py) < TUNING.nearMissRadius
+      );
+
+      if (!near) return;
+
+      nearMissAtRef.current = now;
+      playSound('nearMiss');
+      showFloat(px, py, 'UF. BLIZU.', 'soft');
+
+      // Opasni element se kratko zatrese, pa se oznaka skida da animacija
+      // ne ostane zalijepljena za element.
+      updateEntities((prev) => prev.map((e) => (e.id === near.id ? { ...e, nudge: true } : e)));
+      later(
+        () => updateEntities((prev) => prev.map((e) => (e.id === near.id ? { ...e, nudge: false } : e))),
+        420
+      );
+    },
+    [screen, showFloat, updateEntities, later]
   );
 
   // ------------------------------------------------------------------
@@ -441,42 +658,49 @@ export default function App() {
   // ------------------------------------------------------------------
 
   const shell =
-    'relative mx-auto flex h-[100dvh] w-full max-w-md flex-col overflow-hidden bg-gradient-to-b from-violet-900 via-purple-900 to-fuchsia-900';
+    'relative mx-auto flex h-[100dvh] w-full max-w-md flex-col overflow-hidden bg-ivory text-ink';
 
   const toggleMute = () => setMuted((m) => !m);
-
-  // Na ekranima bez HUD-a dugme za zvuk "lebdi" u gornjem desnom uglu.
   const floatingMute = <MuteButton muted={muted} onToggle={toggleMute} floating />;
 
-  if (screen === 'title') {
+  if (screen === 'start') {
     return (
       <div className={shell}>
         {floatingMute}
-        <TitleScreen onStart={startGame} />
+        <StartScreen onStart={startGame} />
       </div>
     );
   }
 
-  if (screen === 'levelComplete') {
+  if (screen === 'intro') {
     return (
       <div className={shell}>
         {floatingMute}
-        <LevelCompleteScreen
-          finishedIndex={levelIndex}
+        <OperationIntro operation={operation} onStart={startOperation} />
+      </div>
+    );
+  }
+
+  if (screen === 'result') {
+    return (
+      <div className={shell}>
+        {floatingMute}
+        <OperationResult
+          operation={operation}
+          run={runSnapshot}
           score={score}
-          levelScore={score - levelStartScoreRef.current}
-          bonks={bonks}
-          onNext={goToNext}
+          isLast={opIndex === OPERATIONS.length - 1}
+          onNext={goNext}
         />
       </div>
     );
   }
 
-  if (screen === 'gameOver') {
+  if (screen === 'gameover') {
     return (
       <div className={shell}>
         {floatingMute}
-        <GameOverScreen levelIndex={levelIndex} score={score} onRetry={startGame} />
+        <GameOverScreen operation={operation} score={score} onRestart={startGame} />
       </div>
     );
   }
@@ -485,29 +709,44 @@ export default function App() {
     return (
       <div className={shell}>
         {floatingMute}
-        <FinalScreen score={score} stats={stats} onReplay={startGame} />
+        <FinalScreen
+          score={score}
+          stats={statsRef.current}
+          anaAvoided={anaAvoided}
+          onReplay={startGame}
+        />
       </div>
     );
   }
 
+  const stageNow = stageAt(operation, operation.duration - timeLeft);
+  const anaInPlay = stageNow?.elements.includes('ana');
+  const wineInPlay = stageNow?.elements.includes('vino');
+
   return (
     <div className={`${shell} ${hurt ? 'animate-shake' : ''}`}>
       <Hud
-        level={level}
-        levelNumber={level.id}
-        totalLevels={LEVELS.length}
+        operation={operation}
+        totalOperations={OPERATIONS.length}
         timeLeft={timeLeft}
         score={score}
-        craving={level.hasCravings ? craving : null}
+        craving={operation.hasCravings ? craving : null}
         cravingId={cravingId}
-        cravingEvery={level.cravingEvery ?? 5000}
-        bonks={bonks}
+        cravingEvery={operation.cravingEvery ?? 5500}
+        bonks={operation.id === 2 ? bonks : undefined}
+        combo={operation.hasCombo ? combo : 0}
+        showAnaWarning={anaInPlay}
+        showWineNote={wineInPlay && operation.id === 4}
         muted={muted}
         onToggleMute={toggleMute}
       />
 
-      {/* Igraće polje — svi elementi su apsolutno pozicionirani unutar njega. */}
-      <main className="relative m-3 flex-1 overflow-hidden rounded-3xl bg-black/25 ring-1 ring-white/15">
+      {/* Igraće polje */}
+      <main
+        ref={fieldRef}
+        onPointerDown={handleFieldTap}
+        className="relative m-3 flex-1 overflow-hidden rounded-2xl border border-gold/40 bg-cream"
+      >
         {entities.map((entity) => (
           <Entity key={entity.id} entity={entity} onHit={handleHit} />
         ))}
@@ -520,20 +759,13 @@ export default function App() {
           <FloatingText key={item.id} item={item} />
         ))}
 
-        {banner && (
-          // Poruka stoji pri vrhu polja, da ne pokriva elemente po sredini.
-          <div className="pointer-events-none absolute inset-x-2 top-2 z-30">
-            <div
-              className={`animate-pop rounded-2xl px-4 py-3 text-center text-lg font-extrabold shadow-2xl ${
-                banner.tone === 'bad' ? 'bg-red-600 text-white' : 'bg-yellow-400 text-violet-950'
-              }`}
-            >
-              {banner.text}
-            </div>
-          </div>
+        {countdown !== null && timeLeft > 0 && timeLeft <= TUNING.countdownFrom && (
+          <Countdown value={timeLeft} />
         )}
 
-        {hurt && <div className="pointer-events-none absolute inset-0 z-20 bg-red-600/30" />}
+        {banner && <Banner banner={banner} />}
+
+        {hurt && <div className="pointer-events-none absolute inset-0 z-20 bg-alarm/35" />}
       </main>
     </div>
   );

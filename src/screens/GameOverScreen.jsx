@@ -1,46 +1,46 @@
-import { LEVELS } from '../config.js';
+import { GoldRule, PrimaryButton, Sheet } from '../components/ui.jsx';
 
 /**
- * Klik na Anu = kraj igre. Bez života, bez pregovora.
- * Dugme vraća na sam početak (nivo 1, skor 0).
+ * Ana je jedini instant kraj igre.
+ * Namjerno se NE pripisuje Filipu — kliknula je Anu, tačka.
  */
-export default function GameOverScreen({ levelIndex, score, onRetry }) {
-  const level = LEVELS[levelIndex];
-
+export default function GameOverScreen({ operation, score, onRestart }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
-      <div className="animate-shake text-6xl">🚨</div>
-
-      <h2 className="text-3xl font-extrabold leading-tight text-red-300">
-        KLIKNULA SI ANU.
-        <br />
-        KRAJ IGRE.
-      </h2>
-
-      <p className="max-w-xs text-sm text-violet-100">
-        Rekli smo ti da je zabranjena zona. To se ne prašta. 😂
-        <br />
-        Matija se pravi da ništa nije vidio.
-      </p>
-
-      <div className="rounded-2xl bg-white/10 px-6 py-3 ring-1 ring-white/20">
-        <div className="text-[10px] uppercase tracking-wider text-violet-200">Stigla si do</div>
-        <div className="text-xl font-bold text-white">
-          Nivo {level.id}: {level.name}
-        </div>
-        <div className="mt-1 text-[10px] uppercase tracking-wider text-violet-200">Sa skorom</div>
-        <div className="text-4xl font-bold text-yellow-300">{score}</div>
+    <Sheet>
+      <div className="font-ui text-[11px] font-semibold uppercase tracking-[0.3em] text-alarm">
+        Operacija prekinuta
       </div>
 
-      <button
-        type="button"
-        onClick={onRetry}
-        className="rounded-full bg-yellow-400 px-8 py-3 text-lg font-extrabold text-violet-950 shadow-[0_5px_0_#b45309] transition active:translate-y-1 active:shadow-[0_2px_0_#b45309]"
-      >
-        🔁 OD POČETKA
-      </button>
+      <div className="animate-shake text-5xl">💥</div>
 
-      <p className="text-xs text-violet-300">Ovaj put stvarno ne diraj Anu.</p>
-    </div>
+      <h2 className="font-display text-5xl font-bold uppercase leading-none tracking-tight text-alarm">
+        Game Over
+      </h2>
+
+      <GoldRule />
+
+      <div className="flex max-w-xs flex-col gap-1">
+        <p className="font-ui text-base font-bold uppercase tracking-wide text-burgundy">
+          Kliknula si Anu.
+        </p>
+        <p className="text-sm leading-snug text-ink/75">
+          A lijepo smo ti rekli: <strong>NE DIRAJ ANU. 😂</strong>
+        </p>
+      </div>
+
+      <div className="w-full max-w-xs rounded-2xl border border-gold/40 bg-cream px-5 py-3">
+        <div className="font-ui text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">
+          Rezultat
+        </div>
+        <div className="font-ui text-4xl font-bold tabular-nums text-burgundy">{score}</div>
+        <div className="mt-1 font-ui text-[11px] uppercase tracking-wide text-ink/50">
+          Stigla si do: operacije {operation.code}
+        </div>
+      </div>
+
+      <PrimaryButton onClick={onRestart} tone="alarm">
+        Počni ponovo
+      </PrimaryButton>
+    </Sheet>
   );
 }

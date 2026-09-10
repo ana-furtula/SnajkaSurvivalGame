@@ -10,9 +10,9 @@ body,
 
 body {
   margin: 0;
-  background: #2e1065;
-  color: #fff;
-  font-family: 'Fredoka', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: #211d1d;
+  color: #211d1d;
+  font-family: Jost, system-ui, -apple-system, 'Segoe UI', sans-serif;
   /* Igra je full-screen tap-fest: gasimo scroll bounce, dupli-tap zoom i plavi highlight. */
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
@@ -21,8 +21,46 @@ body {
   -webkit-user-select: none;
 }
 
-/* Sprite-ovi se ne smiju "vući" po ekranu na mobilnom. */
 img {
   -webkit-user-drag: none;
   user-drag: none;
+}
+
+/* Tanka zlatna linija — dekorativni motiv pozivnice. */
+.rule-gold {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #b99a5b, transparent);
+}
+
+/* ---------------------------------------------------------------------------
+   Smanjeno kretanje.
+
+   NE smije se gasiti sve odjednom skraćivanjem trajanja: animacije sa
+   `forwards` bi tada odmah skočile na svoj završni kadar, a "floatUp",
+   "starburst" i "bannerIn" završavaju na opacity: 0 — poruke o bodovima,
+   zvjezdice i banneri bi postali potpuno nevidljivi.
+
+   Zato: dekorativno kretanje gasimo, a onome što nosi informaciju dajemo
+   mirno ali VIDLJIVO stanje. Iz DOM-a ih ionako uklanja tajmer u igri.
+   --------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pop,
+  .animate-bubbleIn,
+  .animate-nudge,
+  .animate-shake,
+  .animate-glowRing,
+  .animate-tick {
+    animation: none !important;
+  }
+
+  .animate-floatUp,
+  .animate-starburst,
+  .animate-bannerIn {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+
+  * {
+    transition-duration: 0.01ms !important;
+  }
 }

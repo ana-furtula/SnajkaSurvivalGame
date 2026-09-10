@@ -1,44 +1,48 @@
 import { useEffect, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
-import { TITLES, FINAL_MESSAGE, LEVELS } from '../config.js';
+import { FINAL_RESULTS, FINAL_FOOTER, FINAL_WELCOME } from '../config.js';
 import { playSound } from '../audio.js';
+import { GoldRule, PrimaryButton } from '../components/ui.jsx';
 
-/** Titula se bira po ukupnom skoru — pragovi su u config.js (TITLES). */
-export function getTitle(score) {
-  return [...TITLES].reverse().find((t) => score >= t.min) ?? TITLES[0];
+/** Završna poruka po ukupnom skoru — pragovi su u config.js. */
+export function getFinalResult(score) {
+  return FINAL_RESULTS.find((r) => score >= r.min) ?? FINAL_RESULTS[FINAL_RESULTS.length - 1];
 }
 
-function StatRow({ emoji, label, value, suffix = 'x' }) {
+function StatRow({ label, value }) {
   return (
-    <div className="flex items-center gap-2 border-b border-white/10 py-1.5 last:border-0">
-      <span className="w-6 text-lg leading-none">{emoji}</span>
-      <span className="flex-1 text-sm text-violet-50">{label}</span>
-      <span className="text-base font-bold tabular-nums text-yellow-300">
-        {value}
-        {suffix}
+    <div className="flex items-baseline justify-between gap-3 border-b border-gold/25 py-1.5 last:border-0">
+      <span className="font-ui text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/60">
+        {label}
       </span>
+      <span className="font-ui text-base font-bold tabular-nums text-burgundy">{value}</span>
     </div>
   );
 }
 
-export default function FinalScreen({ score, stats, onReplay }) {
+export default function FinalScreen({ score, stats, anaAvoided, onReplay }) {
   const cardRef = useRef(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
-  const title = getTitle(score);
+  const result = getFinalResult(score);
 
-  // Konfeti odmah po ulasku na finalni ekran + jedan "burst" nakon pola sekunde.
   useEffect(() => {
     const shoot = (particleCount, spread, originY) =>
-      confetti({ particleCount, spread, origin: { y: originY }, zIndex: 60 });
+      confetti({
+        particleCount,
+        spread,
+        origin: { y: originY },
+        zIndex: 60,
+        colors: ['#B99A5B', '#641F2B', '#E8D9D0', '#F7F2E8'],
+      });
 
     playSound('final');
-    shoot(120, 70, 0.6);
-    const t = setTimeout(() => shoot(80, 100, 0.5), 550);
+    shoot(130, 70, 0.6);
+    const t = setTimeout(() => shoot(90, 100, 0.5), 550);
     return () => clearTimeout(t);
   }, []);
 
-  /** Snima karticu rezultata kao PNG — sve client-side, radi i na GitHub Pages. */
+  /** Snima karticu rezultata kao PNG — sve u browseru, bez servera. */
   const saveImage = async () => {
     if (!cardRef.current) return;
     setSaving(true);
@@ -46,13 +50,13 @@ export default function FinalScreen({ score, stats, onReplay }) {
     try {
       const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: '#2e1065',
+        backgroundColor: '#F7F2E8',
         scale: Math.min(window.devicePixelRatio || 1, 2),
         useCORS: true,
         logging: false,
       });
       const link = document.createElement('a');
-      link.download = `snajka-rezultat-${score}.png`;
+      link.download = `operacija-snajka-${score}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch (err) {
@@ -67,52 +71,84 @@ export default function FinalScreen({ score, stats, onReplay }) {
     <div className="h-full overflow-y-auto px-4 py-6">
       <div
         ref={cardRef}
-        className="mx-auto max-w-sm rounded-3xl bg-violet-950 p-5 text-center ring-1 ring-white/20"
+        className="mx-auto flex max-w-sm flex-col items-center gap-3 rounded-2xl border border-gold/50 bg-cream px-5 py-6 text-center"
       >
-        <div className="text-4xl">{title.emoji}</div>
-        <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300">
-          Misija završena
-        </div>
-        <h2 className="mt-1 text-2xl font-extrabold leading-tight text-yellow-300">{title.title}</h2>
-        <p className="mt-1 text-xs text-violet-200">{title.note}</p>
-
-        <div className="my-4 rounded-2xl bg-white/10 py-3">
-          <div className="text-[10px] uppercase tracking-wider text-violet-200">Ukupan skor</div>
-          <div className="text-5xl font-extrabold tabular-nums text-white">{score}</div>
+        <div className="font-ui text-[10px] font-semibold uppercase tracking-[0.3em] text-gold">
+          Operacija završena
         </div>
 
-        <div className="rounded-2xl bg-black/25 px-4 py-2 text-left">
-          <StatRow emoji="👨" label="Matija bonkovan" value={stats.matija} />
-          <StatRow emoji="🐶" label="Nićko pomažen" value={stats.maltezer} />
-          <StatRow emoji="🍕" label="Hrana spašena" value={stats.hrana} />
-          <StatRow emoji="⭐" label="Želje pogođene" value={stats.zelja} />
-          <StatRow emoji="🍷" label="Vino popijeno" value={stats.vino} />
-          <StatRow emoji="👨‍🦱" label="Filip nadmudren" value={stats.filipDobar} />
-          <StatRow emoji="🤡" label="Nasjela na Filipa" value={stats.filipLos} />
-          <StatRow emoji="👩" label="Ana izbjegnuta" value={stats.anaIzbjegnuta} />
-          <StatRow emoji="🏁" label="Nivoa preživljeno" value={LEVELS.length} suffix="" />
+        <h2 className="font-display text-3xl font-bold uppercase leading-tight tracking-tight text-burgundy">
+          {result.title}
+        </h2>
+
+        <GoldRule />
+
+        <div className="flex flex-col gap-1">
+          {result.lines.map((line) => (
+            <p key={line} className="text-sm leading-snug text-ink/75">
+              {line}
+            </p>
+          ))}
         </div>
 
-        <p className="mt-4 text-sm font-extrabold leading-snug text-white">{FINAL_MESSAGE}</p>
+        <p className="font-ui text-sm font-bold uppercase tracking-wide text-burgundy">
+          {result.closing}
+        </p>
+
+        <div className="my-1 w-full rounded-xl border border-gold/40 bg-ivory py-3">
+          <div className="font-ui text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">
+            Ukupan rezultat
+          </div>
+          <div className="font-ui text-5xl font-bold tabular-nums text-burgundy">{score}</div>
+        </div>
+
+        <div className="w-full text-left">
+          <StatRow label="Matija udaran" value={`${stats.bonks}×`} />
+          <StatRow label="Nićko pomažen" value={`${stats.nicko}×`} />
+          <StatRow label="Želje pogođene" value={`${stats.cravingsHit}×`} />
+          <StatRow label="Vino dotaknuto" value={`${stats.vino}×`} />
+          <StatRow label="Filipu povjereno" value={`${stats.filipTrusted}×`} />
+          <StatRow label="Filip uhvaćen u laži" value={`${stats.filipCaught}×`} />
+          <StatRow label="Ana izbjegnuta" value={anaAvoided ? 'DA ❤️' : 'NE'} />
+        </div>
+
+        <div className="mt-2 flex flex-col gap-0.5">
+          {FINAL_FOOTER.map((line) => (
+            <p key={line} className="text-xs italic text-ink/60">
+              {line}
+            </p>
+          ))}
+        </div>
+
+        <GoldRule />
+
+        <div className="flex flex-col gap-0.5">
+          {FINAL_WELCOME.map((line, i) => (
+            <p
+              key={line}
+              className={
+                i === 0
+                  ? 'font-display text-2xl font-bold uppercase leading-tight text-burgundy'
+                  : 'font-ui text-xs font-semibold uppercase tracking-wide text-ink/70'
+              }
+            >
+              {line}
+            </p>
+          ))}
+        </div>
       </div>
 
-      <div className="mx-auto mt-5 flex max-w-sm flex-col gap-3">
-        <button
-          type="button"
-          onClick={onReplay}
-          className="rounded-full bg-yellow-400 px-8 py-3.5 text-lg font-extrabold text-violet-950 shadow-[0_5px_0_#b45309] transition active:translate-y-1 active:shadow-[0_2px_0_#b45309]"
-        >
-          🔄 IGRAJ PONOVO
-        </button>
+      <div className="mx-auto mt-5 flex max-w-sm flex-col items-center gap-3">
+        <PrimaryButton onClick={onReplay}>🔄 Igraj ponovo</PrimaryButton>
         <button
           type="button"
           onClick={saveImage}
           disabled={saving}
-          className="rounded-full bg-white/15 px-8 py-3.5 text-lg font-bold text-white ring-1 ring-white/30 transition active:translate-y-0.5 disabled:opacity-60"
+          className="w-full max-w-xs rounded-full border border-gold/60 bg-cream px-7 py-3 font-ui text-sm font-bold uppercase tracking-[0.12em] text-burgundy transition active:translate-y-0.5 disabled:opacity-60"
         >
-          {saving ? '⏳ Snimam...' : '📸 SAČUVAJ REZULTAT'}
+          {saving ? '⏳ Snimam…' : '📸 Sačuvaj rezultat'}
         </button>
-        {saveError && <p className="text-center text-xs text-red-300">{saveError}</p>}
+        {saveError && <p className="text-center text-xs text-alarm">{saveError}</p>}
       </div>
     </div>
   );

@@ -1,38 +1,49 @@
-// Kreiranje elemenata koji "iskaču" na ekran (spawn logika).
+// Pravljenje elemenata koji iskaču u polju (spawn logika).
 
 import {
   MATIJA_IMAGES,
   FILIP_IMAGES,
   ANA_IMAGES,
-  MALTEZER_IMAGES,
+  NICKO_IMAGES,
   VINO_IMAGES,
   FOODS,
   FALLBACK_EMOJI,
-  FILIP_LINES,
+  TUNING,
 } from './config.js';
-import { getRandomImage, randomFrom, pickWeighted, findSpot, nextId, randomInt } from './utils.js';
+import { getRandomImage, randomFrom, findSpot, nextId, sideBounds } from './utils.js';
 
-// Veličina tap-targeta u px — sve je iznad preporučenih 44px za prst.
+// Veličina tap-targeta u px — sve je iznad preporučenih 44 px za prst.
 const SIZES = {
-  matija: 80,
-  filip: 80,
-  ana: 80,
-  maltezer: 74,
-  hrana: 66,
-  vino: 64,
+  matija: 78,
+  filip: 78,
+  ana: 78,
+  nicko: 72,
+  hrana: 64,
+  vino: 62,
 };
 
-/** Bira tip elementa koji se sljedeći pojavljuje, po težinama iz konfiguracije nivoa. */
-export function pickType(level) {
-  return pickWeighted(level.weights, level.elements);
-}
+const IMAGES = {
+  matija: MATIJA_IMAGES,
+  filip: FILIP_IMAGES,
+  ana: ANA_IMAGES,
+  nicko: NICKO_IMAGES,
+  vino: VINO_IMAGES,
+};
 
 /**
- * Pravi novi element za dati tip.
- * `existing` služi samo da se nova pozicija ne poklopi sa postojećima.
+ * Pravi novi element.
+ *   existing — postojeći elementi (da se nova pozicija ne poklopi)
+ *   options.side   — ograniči na lijevu/desnu polovinu polja
+ *   options.food   — konkretna hrana (za garantovani spawn trenutne želje)
+ *   options.line   — Filipova izjava
+ *   options.lifetime — trajanje u ms
  */
-export function createEntity(type, level, existing, now) {
-  const { x, y } = findSpot(existing);
+export function createEntity(type, { existing = [], now = 0, lifetime = 1600, side = null, food = null, line = null } = {}) {
+  // Ana je jedini instant game over, pa mora imati vidno više prostora oko sebe.
+  const minDistance = type === 'ana' ? TUNING.anaSafeDistance : TUNING.minSpotDistance;
+  const bounds = side ? sideBounds(side) : null;
+  const { x, y } = findSpot(existing, { minDistance, bounds });
+
   const base = {
     id: nextId(),
     type,
@@ -40,68 +51,41 @@ export function createEntity(type, level, existing, now) {
     y,
     size: SIZES[type] ?? 70,
     emoji: FALLBACK_EMOJI[type],
+    image: getRandomImage(IMAGES[type]),
     bornAt: now,
-    // Lagana varijacija trajanja da ritam ne bude mehanički.
-    expiresAt: now + level.lifetime * (0.85 + Math.random() * 0.4),
-    image: null,
-    label: null,
+    expiresAt: now + lifetime,
     dying: false,
+    expiring: false,
   };
 
-  switch (type) {
-    case 'matija':
-      return { ...base, image: getRandomImage(MATIJA_IMAGES) };
-
-    case 'maltezer':
-      return { ...base, image: getRandomImage(MALTEZER_IMAGES) };
-
-    case 'vino':
-      return { ...base, image: getRandomImage(VINO_IMAGES) };
-
-    case 'ana':
-      // Ana ostaje malo duže — da stigne da uplaši igrača prije nego nestane.
-      return {
-        ...base,
-        image: getRandomImage(ANA_IMAGES),
-        expiresAt: base.expiresAt + 300,
-      };
-
-    case 'hrana': {
-      const food = randomFrom(FOODS);
-      return {
-        ...base,
-        image: getRandomImage(food.images),
-        emoji: food.emoji,
-        food: food.key,
-        foodName: food.name,
-      };
-    }
-
-    case 'filip': {
-      const line = randomFrom(FILIP_LINES);
-      const entity = {
-        ...base,
-        image: getRandomImage(FILIP_IMAGES),
-        behavior: line.effect,
-        lineKey: line.key,
-        label: line.text,
-        // Filip je duhovit samo ako se stigne pročitati šta piše.
-        expiresAt: base.expiresAt + 1000,
-      };
-
-      // Filip uvijek nosi natpis iznad glave, pa ne smije biti prilijepljen
-      // za vrh polja — inače se tekst odsiječe.
-      entity.y = randomInt(24, 82);
-
-      // "Matija je lijevo" ima smisla samo ako Filip stoji desno.
-      if (line.effect === 'lijevo') {
-        entity.x = randomInt(58, 92);
-      }
-
-      return entity;
-    }
-
-    default:
-      return base;
+  if (type === 'hrana') {
+    const picked = food ? FOODS.find((f) => f.key === food) ?? randomFrom(FOODS) : randomFrom(FOODS);
+    return {
+      ...base,
+      image: getRandomImage(picked.images),
+      emoji: picked.emoji,
+      food: picked.key,
+      foodName: picked.name,
+    };
   }
+
+  if (type === 'filip') {
+    return {
+      ...base,
+      line: line?.text ?? null,
+      lineKind: line?.kind ?? 'sala',
+      // Filip mora imati vremena da se pročita šta je rekao.
+      expiresAt: base.expiresAt + 700,
+      // Kad tvrdi gdje je Matija, stoji na suprotnoj strani od svoje tvrdnje,
+      // da se strelica pogleda ne poklapa sa njim samim.
+      ...(line?.kind === 'smjer' ? { claims: line.side } : {}),
+    };
+  }
+
+  if (type === 'ana') {
+    // Malo duže na ekranu — mora se stići prepoznati i NE kliknuti.
+    return { ...base, expiresAt: base.expiresAt + 250 };
+  }
+
+  return base;
 }

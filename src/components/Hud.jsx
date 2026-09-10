@@ -1,30 +1,28 @@
 import MuteButton from './MuteButton.jsx';
 
-/**
- * Traka trenutne želje. `cravingId` se mijenja pri svakoj novoj želji, pa se
- * cijela traka re-montira — time se ponovo pokrenu animacije: "NOVA ŽELJA!"
- * oznaka i traka koja se prazni do sljedeće promjene.
- */
+/** Traka trenutne želje. `cravingId` je ključ — re-montira i ponovo pokreće animacije. */
 function CravingBar({ craving, cravingEvery }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-amber-400 px-3 py-2 text-amber-950 shadow-lg ring-2 ring-amber-200">
+    <div className="relative overflow-hidden rounded-xl border border-gold/60 bg-cream px-3 py-2">
       <div className="flex items-center gap-3">
-        <span className="animate-pop text-4xl leading-none">{craving.emoji}</span>
+        <span className="animate-pop text-3xl leading-none">{craving.emoji}</span>
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-amber-800">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">
             Trenutna želja
           </div>
-          <div className="truncate text-2xl font-extrabold leading-tight">{craving.name}</div>
+          <div className="truncate font-ui text-xl font-bold leading-tight text-burgundy">
+            {craving.name}
+          </div>
         </div>
-        <span className="animate-flashOut rounded-full bg-amber-950 px-2 py-1 text-[10px] font-extrabold text-amber-200">
-          NOVA!
+        <span className="animate-flashOut rounded-full bg-burgundy px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-cream">
+          novo
         </span>
       </div>
 
-      {/* Vremenska traka: prazni se tačno onoliko koliko želja traje. */}
-      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-amber-900/25">
+      {/* Koliko još traje ova želja. */}
+      <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-blush">
         <div
-          className="animate-drain h-full rounded-full bg-amber-900"
+          className="animate-drain h-full rounded-full bg-gold"
           style={{ animationDuration: `${cravingEvery}ms` }}
         />
       </div>
@@ -32,17 +30,19 @@ function CravingBar({ craving, cravingEvery }) {
   );
 }
 
-/** Gornja traka: nivo, vrijeme, skor, životi + traka trenutne želje. */
+/** Gornja traka: oznaka operacije, rezultat, vrijeme, želja i upozorenja. */
 export default function Hud({
-  level,
-  levelNumber,
-  totalLevels,
+  operation,
+  totalOperations,
   timeLeft,
   score,
   craving,
   cravingId,
   cravingEvery,
   bonks,
+  combo,
+  showAnaWarning,
+  showWineNote,
   muted,
   onToggleMute,
 }) {
@@ -51,47 +51,70 @@ export default function Hud({
   return (
     <header className="shrink-0 px-3 pt-3">
       <div className="flex items-stretch gap-2">
-        <div className="flex-1 rounded-2xl bg-white/10 px-3 py-2 ring-1 ring-white/20">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-violet-200">
-            Nivo {levelNumber}/{totalLevels}
+        <div className="flex-1 rounded-xl border border-gold/40 bg-cream px-3 py-1.5">
+          <div className="font-ui text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">
+            Operacija {operation.code} / 0{totalOperations}
           </div>
-          <div className="truncate text-sm font-bold text-white">{level.name}</div>
+          <div className="truncate font-ui text-sm font-bold uppercase tracking-wide text-burgundy">
+            {operation.name}
+          </div>
         </div>
 
         <div
-          className={`w-20 rounded-2xl px-2 py-1 text-center ring-1 ${
-            low ? 'bg-red-500/30 ring-red-300/60' : 'bg-white/10 ring-white/20'
+          className={`w-16 rounded-xl border px-1 py-1 text-center ${
+            low ? 'animate-nudge border-alarm bg-alarm' : 'border-gold/40 bg-cream'
           }`}
         >
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-violet-200">Vrijeme</div>
-          <div className={`text-2xl font-bold tabular-nums ${low ? 'text-red-200' : 'text-white'}`}>
+          <div
+            className={`text-[9px] font-semibold uppercase tracking-widest ${
+              low ? 'text-cream/80' : 'text-gold'
+            }`}
+          >
+            Vrijeme
+          </div>
+          <div
+            className={`font-ui text-2xl font-bold tabular-nums leading-tight ${
+              low ? 'text-cream' : 'text-ink'
+            }`}
+          >
             {timeLeft}
           </div>
         </div>
 
-        <div className="w-20 rounded-2xl bg-white/10 px-2 py-1 text-center ring-1 ring-white/20">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-violet-200">Skor</div>
-          <div className="text-2xl font-bold tabular-nums text-yellow-300">{score}</div>
+        <div className="w-[4.5rem] rounded-xl border border-gold/40 bg-cream px-1 py-1 text-center">
+          <div className="text-[9px] font-semibold uppercase tracking-widest text-gold">Rezultat</div>
+          <div className="font-ui text-2xl font-bold tabular-nums leading-tight text-burgundy">
+            {score}
+          </div>
         </div>
+
+        <MuteButton muted={muted} onToggle={onToggleMute} />
       </div>
 
-      <div className="mt-2 flex items-center gap-2">
-        {/* Na nivoima gdje se Ana pojavljuje — stalno upozorenje, jer klik = kraj igre. */}
-        {level.elements.includes('ana') && (
-          <div className="animate-wiggle rounded-full bg-red-600 px-3 py-1 text-xs font-extrabold text-white shadow-lg ring-1 ring-red-300/60">
-            👩 NE KLIKĆI ANU!
-          </div>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        {typeof bonks === 'number' && (
+          <span className="rounded-full border border-burgundy/25 bg-cream px-2.5 py-[3px] font-ui text-[11px] font-semibold text-burgundy">
+            👨 {bonks}
+          </span>
         )}
 
-        {level.targetBonks && (
-          <div className="rounded-full bg-sky-500/25 px-3 py-1 text-xs font-bold text-sky-100 ring-1 ring-sky-300/50">
-            🎯 Bonkovi: {bonks}/{level.targetBonks}
-          </div>
+        {combo >= 3 && (
+          <span className="rounded-full bg-burgundy px-2.5 py-[3px] font-ui text-[11px] font-bold uppercase tracking-wide text-cream">
+            combo ×{combo}
+          </span>
         )}
 
-        <div className="ml-auto">
-          <MuteButton muted={muted} onToggle={onToggleMute} />
-        </div>
+        {showWineNote && (
+          <span className="rounded-full border border-alarm/40 bg-cream px-2.5 py-[3px] font-ui text-[11px] font-semibold text-alarm">
+            🍷 znaš već zašto
+          </span>
+        )}
+
+        {showAnaWarning && (
+          <span className="animate-nudge ml-auto rounded-full bg-alarm px-2.5 py-[3px] font-ui text-[11px] font-bold uppercase tracking-wide text-cream">
+            👩 ne diraj Anu!
+          </span>
+        )}
       </div>
 
       {craving && (
