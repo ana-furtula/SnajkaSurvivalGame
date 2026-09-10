@@ -57,14 +57,14 @@ export function Sticker({ children, tone = 'yellow', rotate = -3, className = ''
 }
 
 /** Veliki broj operacije: LEVEL 03 / 05 */
-export function LevelBadge({ code, total }) {
+export function LevelBadge({ number, total }) {
   return (
     <div className="flex items-end gap-2">
       <span className="rounded-lg border-[3px] border-ink bg-pink px-2 py-1 font-display text-xs uppercase text-cream shadow-sticker">
         Level
       </span>
-      <span className="font-display text-4xl leading-none text-yellow outline-text-sm">{code}</span>
-      <span className="pb-1 font-ui text-sm font-black text-cream/60">/ 0{total}</span>
+      <span className="outline-text-sm font-display text-4xl leading-none text-yellow">{number}</span>
+      <span className="pb-1 font-ui text-sm font-black text-cream/60">/ {total}</span>
     </div>
   );
 }

@@ -14,9 +14,36 @@ const assets = (paths) => paths.map(asset);
 //     Ako fajl fali, prikazuje se emoji (vidi Sprite.jsx) i igra radi normalno.
 // ---------------------------------------------------------------------------
 
-export const MATIJA_IMAGES = assets(['/images/matija/matija-1.jpg', '/images/matija/matija-2.jpg']);
-export const FILIP_IMAGES = assets(['/images/filip/filip-1.jpg', '/images/filip/filip-2.jpg']);
-export const ANA_IMAGES = assets(['/images/ana/ana-1.jpg', '/images/ana/ana-2.jpg']);
+export const MATIJA_IMAGES = assets([
+    '/images/matija/matija-1.jpg',
+    '/images/matija/matija-2.jpg',
+    '/images/matija/matija-3.jpg',
+    '/images/matija/matija-4.jpg',
+    '/images/matija/matija-5.jpg',
+    '/images/matija/matija-6.jpg',
+    '/images/matija/matija-7.jpg',
+    '/images/matija/matija-8.jpg',
+    '/images/matija/matija-9.jpg',
+    '/images/matija/matija-10.jpg',
+    '/images/matija/matija-11.jpg',
+]);
+export const FILIP_IMAGES = assets([
+    '/images/filip/filip-1.jpg',
+    '/images/filip/filip-2.jpg',
+    '/images/filip/filip-3.jpg',
+    '/images/filip/filip-4.jpg',
+    '/images/filip/filip-5.jpg',
+    '/images/filip/filip-6.jpg',
+    '/images/filip/filip-7.jpg',
+]);
+export const ANA_IMAGES = assets([
+    '/images/ana/ana-1.jpg',
+    '/images/ana/ana-2.jpg',
+    '/images/ana/ana-3.jpg',
+    '/images/ana/ana-4.jpg',
+    '/images/ana/ana-5.jpg',
+    '/images/ana/ana-6.jpg',
+]);
 export const NICKO_IMAGES = assets(['/images/maltezer/maltezer-1.jpg', '/images/maltezer/maltezer-2.jpg']);
 export const VINO_IMAGES = assets(['/images/vino/vino-1.jpg']);
 
@@ -91,10 +118,10 @@ export const SOUND_VOLUME = 0.7;
 
 export const SCORES = {
     matija: 1,
-    nicko: 3,
+    nicko: 2,
     hrana: 2, // hrana dok nema aktivne želje (operacija 01)
-    hranaZelja: 5, // pogođena trenutna želja
-    hranaPogresna: -1, // pogrešna hrana dok je želja aktivna
+    hranaZelja: 3, // pogođena trenutna želja
+    hranaPogresna: -2, // pogrešna hrana dok je želja aktivna
     vino: -3,
     filipKlik: -2, // klik na samog Filipa
     filipPovjerenje: 2, // bonus ako je Filip rekao istinu i poslušala si ga
@@ -103,10 +130,13 @@ export const SCORES = {
 
 // Pragovi za combo u operaciji 02 (uzastopni pogoci Matije).
 export const COMBO_STEPS = [
-    { hits: 3, text: 'MATIJA SE ZAPITAO ŠTA JE SKRIVIO' },
-    { hits: 6, text: 'OVO JE VEĆ LIČNO' },
-    { hits: 10, text: 'NEKO DA POZOVE POMOĆ' },
-    { hits: 12, text: 'DOBRO, SHVATILI SMO.' },
+    { hits: 2, text: 'MATIJA SE ZAPITAO ŠTA JE SKRIVIO' },
+    { hits: 4, text: 'OVO JE VEĆ LIČNO!' },
+    { hits: 6, text: 'MATIJA ĆE SAD DA SE POPRAVI' },
+    { hits: 8, text: 'NEKO DA POZOVE POMOĆ?!' },
+    { hits: 10, text: 'MATIJA JE POČEO DA SE PITA DA LI JE OVO BRAK' },
+    { hits: 12, text: 'MATIJA, BJEŽI DOK JOŠ MOŽEŠ!!!' },
+    { hits: 14, text: 'NEE PO GLAVI ŽENOO!!!' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -213,7 +243,11 @@ export const OPERATIONS = [{
         elements: ['matija', 'filip', 'vino'],
         weights: { matija: 42, filip: 34, vino: 24 },
         pacing: { interval: [1500, 1000], lifetime: [2200, 1700], maxOnScreen: [3, 4] },
-        filipTruthChance: 0.6, // 60% istina, 40% laž
+        filipTruthChance: 0.5, // pola-pola: odluka mora biti stvarna
+        // Prva tvrdnja u ovoj operaciji je UVIJEK laž. Tutorial je upravo
+        // naučio da slušanje nosi +3, pa igrač skoro sigurno nasjedne bar
+        // jednom — bez toga statistika "preveslao te" ostaje prazna.
+        firstClaimLies: true,
         // Koliko često Filip daje TVRDNJU o smjeru umjesto puke šale.
         // Operacija je o odluci da li mu vjerovati, pa šale ovdje samo razblažuju.
         filipClaimChance: 0.75,
@@ -260,7 +294,7 @@ export const OPERATIONS = [{
                 until: 30,
                 label: 'PORODIČNI HAOS',
                 elements: ['matija', 'nicko', 'hrana', 'filip', 'vino', 'ana'],
-                weights: { matija: 28, nicko: 8, hrana: 22, filip: 18, vino: 14, ana: 10 },
+                weights: { matija: 24, nicko: 6, hrana: 16, filip: 14, vino: 16, ana: 24 },
                 pacing: { interval: [820, 620], lifetime: [1500, 1250], maxOnScreen: [5, 6] },
             },
         ],
@@ -313,7 +347,7 @@ export const FINAL_RESULTS = [{
             'Matija je naučio ko je glavni.',
             'Filip će morati da smisli neke nove fore.',
             'Ana je od sada na tvojoj strani.',
-            'Nićko je već na tvojoj strani.',
+            'Nićko je već bio na tvojoj strani.',
         ],
         closing: 'Dobrodošla. Samo polako s nama. ❤️',
     },

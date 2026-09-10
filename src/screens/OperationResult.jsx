@@ -21,7 +21,7 @@ export default function OperationResult({ operation, run, score, isLast, onNext 
 
   return (
     <Sheet>
-      <LevelBadge code={operation.code} total={OPERATIONS.length} />
+      <LevelBadge number={operation.id} total={OPERATIONS.length} />
 
       <h2 className="outline-text-sm animate-slamIn font-display text-[1.75rem] uppercase leading-[0.95] text-lime">
         {operation.resultTitle ?? 'Operacija završena'}
@@ -50,10 +50,15 @@ export default function OperationResult({ operation, run, score, isLast, onNext 
             <Stat label="Najduži niz" value={`${run.bestCombo}×`} />
           )}
           {operation.hasCravings && <Stat label="Želje pogođene" value={`${run.cravingsHit}×`} />}
-          {operation.id === 4 && <Stat label="Filip se šalio" value={`${run.filipLies}×`} />}
-          {operation.id === 4 && <Stat label="Filip bio ozbiljan" value={`${run.filipTruths}×`} />}
+          {/* Namjerno se NE prikazuje koliko je puta lagao a koliko bio iskren:
+              "preveslao te" uključuje i klik na njega samog (i njegove šale),
+              pa te dvije brojke nisu u odnosu koji se smije sabirati. Ovdje
+              stoji samo ono što je igrač uradio. */}
           {operation.id === 4 && <Stat label="Provalila si ga" value={`${run.filipCaught}×`} />}
           {operation.id === 4 && <Stat label="Preveslao te" value={`${run.filipFooled}×`} />}
+          {operation.id === 4 && run.filipTrusted > 0 && (
+            <Stat label="Poslušala ga s razlogom" value={`${run.filipTrusted}×`} />
+          )}
           {operation.id === 5 && <Stat label="OK si sa Anom" value="DA ❤️" />}
         </div>
       </div>

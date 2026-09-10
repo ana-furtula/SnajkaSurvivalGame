@@ -42,7 +42,7 @@ export default function GameOverScreen({ operation, score, onRestart }) {
             {score}
           </div>
           <div className="mt-1 font-ui text-[11px] font-black uppercase tracking-[0.15em] text-cream/60">
-            stigla si do: operacije {operation.code}
+            stigla si do levela {operation.id}
           </div>
         </div>
       </div>

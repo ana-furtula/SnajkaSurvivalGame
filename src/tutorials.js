@@ -107,16 +107,23 @@ export const TUTORIALS = {
             reject: { f: 'TO JE FILIP. −2' },
         },
         {
-            prompt: 'A SAD PAZI',
+            // Kad laže, tamo gdje te uputi čeka VINO. Zato ovaj korak mora
+            // pokazati i to — inače igrač nikad ne poveže "preveslao te je"
+            // sa Filipovim savjetom.
+            prompt: 'A SAD PAZI — NE SLUŠAJ GA, NAĐI MATIJU',
             note: { text: 'OVAJ PUT SE ŠALIO', tone: 'bad' },
             items: [
-                { key: 'm', type: 'matija', x: 26, y: 58, highlight: true },
-                { key: 'f', type: 'filip', x: 74, y: 44, line: 'Matija je desno, kunem se.' },
+                { key: 'm', type: 'matija', x: 24, y: 58, highlight: true },
+                { key: 'v', type: 'vino', x: 76, y: 66 },
+                { key: 'f', type: 'filip', x: 70, y: 34, line: 'Matija je desno, kunem se.' },
             ],
             accept: 'm',
             reward: 'FILIP JE POKUŠAO DA TE ZBUNI, NIJE MU USPJELO! +1',
-            reject: { f: 'USPIO JE DA TE ZBUNI. −2' },
-            after: 'Filip nije uvijek u pravu. Ali nije ni uvijek u krivu.',
+            reject: {
+                f: 'USPIO JE DA TE ZBUNI. −2',
+                v: 'DESNO JE ČEKALO VINO. TAKO TE PREVESLA. −3',
+            },
+            after: 'Kad laže, tamo gdje te pošalje čeka vino. Kad ne laže — čeka Matija.',
         },
     ],
 };

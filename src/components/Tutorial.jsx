@@ -1,6 +1,13 @@
 import { useMemo, useState } from 'react';
 import Entity from './Entity.jsx';
-import { FOODS, MATIJA_IMAGES, FILIP_IMAGES, NICKO_IMAGES, FALLBACK_EMOJI } from '../config.js';
+import {
+  FOODS,
+  MATIJA_IMAGES,
+  FILIP_IMAGES,
+  NICKO_IMAGES,
+  VINO_IMAGES,
+  FALLBACK_EMOJI,
+} from '../config.js';
 import { getRandomImage } from '../utils.js';
 import { TUTORIALS } from '../tutorials.js';
 
@@ -12,6 +19,7 @@ function toEntity(item) {
     matija: MATIJA_IMAGES,
     filip: FILIP_IMAGES,
     nicko: NICKO_IMAGES,
+    vino: VINO_IMAGES,
   };
 
   if (item.type === 'hrana') {
@@ -33,7 +41,7 @@ function toEntity(item) {
     type: item.type,
     x: item.x,
     y: item.y,
-    size: item.type === 'nicko' ? 70 : 74,
+    size: item.type === 'nicko' ? 70 : item.type === 'vino' ? 64 : 74,
     emoji: FALLBACK_EMOJI[item.type],
     image: getRandomImage(images[item.type]),
     highlight: item.highlight,

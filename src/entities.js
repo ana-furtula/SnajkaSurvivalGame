@@ -51,7 +51,7 @@ export function createEntity(type, { existing = [], now = 0, lifetime = 1600, si
     y,
     size: SIZES[type] ?? 70,
     emoji: FALLBACK_EMOJI[type],
-    image: getRandomImage(IMAGES[type]),
+    image: getRandomImage(IMAGES[type], type),
     bornAt: now,
     expiresAt: now + lifetime,
     dying: false,
@@ -62,7 +62,7 @@ export function createEntity(type, { existing = [], now = 0, lifetime = 1600, si
     const picked = food ? FOODS.find((f) => f.key === food) ?? randomFrom(FOODS) : randomFrom(FOODS);
     return {
       ...base,
-      image: getRandomImage(picked.images),
+      image: getRandomImage(picked.images, picked.key),
       emoji: picked.emoji,
       food: picked.key,
       foodName: picked.name,

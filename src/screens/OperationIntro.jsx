@@ -14,7 +14,7 @@ export default function OperationIntro({ operation, onStart }) {
 
   return (
     <Sheet>
-      <LevelBadge code={operation.code} total={OPERATIONS.length} />
+      <LevelBadge number={operation.id} total={OPERATIONS.length} />
 
       <h2 className="outline-text-sm animate-slamIn font-display text-[1.9rem] uppercase leading-[0.95] tracking-tight text-yellow">
         {operation.name}

@@ -54,6 +54,7 @@ export default function Hud({
   combo,
   showAnaWarning,
   showWineNote,
+  penalty,
   muted,
   onToggleMute,
 }) {
@@ -64,7 +65,7 @@ export default function Hud({
       {/* Red 1: ime levela + mute */}
       <div className="flex items-center gap-2">
         <span className="shrink-0 rounded-lg border-[3px] border-ink bg-pink px-2 py-1 font-display text-[11px] uppercase leading-none text-cream shadow-sticker">
-          Lvl {operation.code}/0{totalOperations}
+          Lvl {operation.id}/{totalOperations}
         </span>
         <div className="min-w-0 flex-1 rounded-lg border-[3px] border-ink bg-purple px-2 py-1 shadow-sticker">
           <div className="truncate font-display text-sm uppercase leading-tight text-cream">
@@ -91,13 +92,29 @@ export default function Hud({
           </div>
         </div>
 
-        <div className="flex-1 rounded-xl border-[3px] border-yellow bg-night px-3 py-1 shadow-sticker">
+        {/* Kad se skor smanji, cijela pločica pocrveni i pokaže koliko je
+            oduzeto — inače se kazna izgubi među plusevima iz iste sekunde. */}
+        <div
+          className={`relative flex-1 rounded-xl border-[3px] px-3 py-1 shadow-sticker ${
+            penalty ? 'animate-nudge border-cream bg-red' : 'border-yellow bg-night'
+          }`}
+        >
           <div className="font-ui text-[9px] font-black uppercase tracking-[0.2em] text-cream/60">
             Score
           </div>
-          <div className="font-display text-2xl leading-none tabular-nums text-yellow">
+          <div
+            className={`font-display text-2xl leading-none tabular-nums ${
+              penalty ? 'text-cream' : 'text-yellow'
+            }`}
+          >
             {scoreLabel(score)}
           </div>
+
+          {penalty && (
+            <span className="animate-floatUp pointer-events-none absolute -top-1 left-1/2 font-pop text-lg text-red drop-shadow-[0_2px_0_rgba(12,10,26,0.9)]">
+              {penalty}
+            </span>
+          )}
         </div>
       </div>
 
@@ -106,7 +123,7 @@ export default function Hud({
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           {typeof bonks === 'number' && (
             <span className="rounded-md border-2 border-ink bg-blue px-2 py-[2px] font-ui text-[11px] font-black text-cream shadow-sticker">
-              👊 {bonks}
+              👊 MATIJA {bonks}
             </span>
           )}
 

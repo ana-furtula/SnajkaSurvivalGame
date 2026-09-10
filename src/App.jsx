@@ -11,6 +11,7 @@ import {
 import { createEntity } from './entities.js';
 import { randomFrom, randomInt, pickWeighted, nextId, lerp, otherSide } from './utils.js';
 import { playSound, setMuted as setAudioMuted, warmUpSounds } from './audio.js';
+import { warmUpImages } from './preload.js';
 
 import Hud from './components/Hud.jsx';
 import Entity from './components/Entity.jsx';
@@ -45,6 +46,7 @@ const emptyRun = () => ({
   cravingsHit: 0,
   filipTruths: 0, // koliko puta je Filip rekao istinu
   filipLies: 0, // koliko puta je slagao
+  filipTrusted: 0, // rekao istinu i poslušala si ga
   filipCaught: 0, // slagao, a ti si ga svejedno provalila
   filipFooled: 0, // slagao i uspio — otišla si gdje te je poslao
   bestCombo: 0,
@@ -118,6 +120,7 @@ export default function App() {
   const [cravingId, setCravingId] = useState(0);
   const [countdown, setCountdown] = useState(null);
   const [hurt, setHurt] = useState(false);
+  const [penalty, setPenalty] = useState(null); // koliko je upravo oduzeto
   const [muted, setMuted] = useState(false);
   const [runSnapshot, setRunSnapshot] = useState(emptyRun());
   const [anaAvoided, setAnaAvoided] = useState(true);
@@ -133,6 +136,7 @@ export default function App() {
   const entitiesRef = useRef([]);
   const cravingRef = useRef(null);
   const pendingCravingRef = useRef(null); // garantuje da se željena hrana pojavi
+  const pendingAnaRef = useRef(null); // garantuje da se Ana bar jednom pojavi u završnoj fazi
   const bannerIdRef = useRef(0);
   const endedRef = useRef(false);
   const endingRef = useRef(false);
@@ -166,10 +170,21 @@ export default function App() {
     setEntities(entitiesRef.current);
   }, []);
 
-  const addScore = useCallback((delta) => {
-    scoreRef.current += delta;
-    setScore(scoreRef.current);
-  }, []);
+  const addScore = useCallback(
+    (delta) => {
+      scoreRef.current += delta;
+      setScore(scoreRef.current);
+
+      // Kazne se lako previde: dok padne jedan minus, u istoj sekundi si
+      // pokupila i dva plusa, pa skor svejedno raste. Zato oduzimanje mora
+      // biti VIDLJIVO na samom skoru, a ne samo u lebdećoj poruci.
+      if (delta < 0) {
+        setPenalty(delta);
+        later(() => setPenalty(null), 700);
+      }
+    },
+    [later]
+  );
 
   const showFloat = useCallback(
     (x, y, text, tone = 'good') => {
@@ -216,8 +231,10 @@ export default function App() {
   }, [clearTimers]);
 
   const startGame = useCallback(() => {
-    // Prvi klik je i dozvola browsera za zvuk.
+    // Prvi klik je i dozvola browsera za zvuk; tu povlačimo i sve slike,
+    // da se ne skidaju usred gameplaya.
     warmUpSounds();
+    warmUpImages();
     playSound('start');
     resetGame();
   }, [resetGame]);
@@ -256,6 +273,7 @@ export default function App() {
     setBanner(null);
     setCountdown(null);
     setHurt(false);
+    setPenalty(null);
 
     bonksRef.current = 0;
     comboRef.current = 0;
@@ -264,6 +282,7 @@ export default function App() {
 
     runRef.current = { ...emptyRun(), startScore: scoreRef.current };
     pendingCravingRef.current = null;
+    pendingAnaRef.current = null;
     cravingRef.current = null;
     nearMissAtRef.current = 0;
     lastTickSecRef.current = null;
@@ -326,8 +345,10 @@ export default function App() {
     let lastCravingAt = startedAt;
 
     /** Filipova izjava + posljedice na polju. */
-    const spawnFilip = (alive, now, lifetime, anaInPlay) => {
+    const spawnFilip = (alive, now, lifetime, elements) => {
       playSound('filip');
+      const anaInPlay = elements.includes('ana');
+      const wineInPlay = elements.includes('vino');
 
       // Izjava se bira po ulozi, a ne iz jedne izmiješane gomile: inače bi
       // udio stvarnih tvrdnji zavisio od toga koliko šala ima u nizu, pa bi
@@ -349,20 +370,34 @@ export default function App() {
 
       // Tvrdi gdje je Matija — sistem stvarno postavi Matiju na tu ili
       // suprotnu stranu. Filip stoji nasuprot svojoj tvrdnji.
-      const truth = Math.random() < (op.filipTruthChance ?? 0.6);
+      const isFirstClaim = runRef.current.filipTruths + runRef.current.filipLies === 0;
+      const truth =
+        op.firstClaimLies && isFirstClaim ? false : Math.random() < (op.filipTruthChance ?? 0.6);
       const matijaSide = truth ? line.side : otherSide(line.side);
 
-      const filip = createEntity('filip', {
-        existing: alive,
-        now,
-        lifetime: lifetime + 300,
-        side: otherSide(line.side),
-        line,
-      });
+      const claim = {
+        truth,
+        claimedSide: line.side, // strana na koju te je poslao
+        counted: false, // ishod se broji najviše jednom
+      };
 
-      // Tvrdnja se kači na samog Matiju, a ne na jedan zajednički ref:
-      // ako se drugi Filip pojavi prije nego prvi istekne, novi zahtjev bi
-      // pregazio stari i ishod prvog se ne bi izbrojao.
+      // Ista tvrdnja se kači i na Filipa i na Matiju (isti objekat), pa klik
+      // na Filipa zna da li je BAŠ ON slagao. Bez toga bi se svaki klik na
+      // Filipa brojao kao "preveslao te", pa bi zbir ishoda premašio broj laži.
+      const filip = {
+        ...createEntity('filip', {
+          existing: alive,
+          now,
+          lifetime: lifetime + 300,
+          side: otherSide(line.side),
+          line,
+        }),
+        claim,
+      };
+
+      // Tvrdnja ide uz elemente, a ne u jedan zajednički ref: ako se drugi
+      // Filip pojavi prije nego prvi istekne, novi bi pregazio starog i
+      // ishod prvog se ne bi izbrojao.
       const matija = {
         ...createEntity('matija', {
           existing: [...alive, filip],
@@ -370,15 +405,28 @@ export default function App() {
           lifetime: lifetime + 300,
           side: matijaSide,
         }),
-        claim: {
-          truth,
-          claimedSide: line.side, // strana na koju te je poslao
-          counted: false, // ishod se broji najviše jednom
-        },
+        claim,
       };
 
       if (truth) runRef.current.filipTruths += 1;
       else runRef.current.filipLies += 1;
+
+      // Kad laže, na strani na koju te uputio mora nešto STAJATI — inače je
+      // tamo prazno polje, nemaš šta kliknuti, i "preveslao te je" se
+      // praktično ne može ni desiti. Zato tamo iskoči vino: poslušati ga
+      // tada znači konkretnu kaznu, a ne samo promašen tap u prazno.
+      if (!truth && wineInPlay) {
+        const decoy = {
+          ...createEntity('vino', {
+            existing: [...alive, filip, matija],
+            now,
+            lifetime: lifetime + 300,
+            side: line.side,
+          }),
+          decoyClaim: matija.claim,
+        };
+        return [filip, matija, decoy];
+      }
 
       return [filip, matija];
     };
@@ -405,10 +453,19 @@ export default function App() {
         ];
       }
 
+      // Garantovana Ana: sa 10% težine i svega ~14 pojavljivanja u završnoj
+      // fazi, u oko četvrtini partija se ne bi pojavila nijednom — a ona je
+      // poenta te faze.
+      const ana = pendingAnaRef.current;
+      if (ana && !ana.spawned && stage.elements.includes('ana') && now >= ana.plannedAt) {
+        ana.spawned = true;
+        return [createEntity('ana', { existing: alive, now, lifetime: pace.lifetime })];
+      }
+
       const type = pickWeighted(stage.weights, stage.elements);
 
       if (type === 'filip') {
-        return spawnFilip(alive, now, pace.lifetime, stage.elements.includes('ana'));
+        return spawnFilip(alive, now, pace.lifetime, stage.elements);
       }
 
       return [createEntity(type, { existing: alive, now, lifetime: pace.lifetime })];
@@ -438,6 +495,16 @@ export default function App() {
           setCountdown(remaining);
           playSound('countdown');
         }
+      }
+
+      // Čim Ana uđe u igru, zakazujemo joj obavezan nastup. Ostavljamo
+      // dovoljno vremena do kraja da se stigne uočiti i NE kliknuti.
+      if (stage.elements.includes('ana') && !pendingAnaRef.current) {
+        pendingAnaRef.current = {
+          plannedAt: now + randomInt(600, 2600),
+          deadline: now + Math.max(1000, (remaining - 4) * 1000),
+          spawned: false,
+        };
       }
 
       // Rotacija želje.
@@ -487,6 +554,18 @@ export default function App() {
               food: pending.key,
             }),
           ];
+        }
+
+        // Tvrdi rok za Anu — ako se do sada nije pojavila, ide bez obzira na sve.
+        const anaPending = pendingAnaRef.current;
+        if (
+          anaPending &&
+          !anaPending.spawned &&
+          now >= anaPending.deadline &&
+          stage.elements.includes('ana')
+        ) {
+          anaPending.spawned = true;
+          alive = [...alive, createEntity('ana', { existing: alive, now, lifetime: pace.lifetime })];
         }
 
         return alive;
@@ -542,14 +621,15 @@ export default function App() {
     const lying = entitiesRef.current.find(
       (e) => e.claim && !e.claim.truth && !e.claim.counted && !e.dying && !e.expiring
     );
-    if (!lying || lying.id === ignoreId) return;
+    if (!lying || lying.id === ignoreId) return false;
 
     const onClaimedSide = lying.claim.claimedSide === 'lijevo' ? x < 50 : x > 50;
-    if (!onClaimedSide) return;
+    if (!onClaimedSide) return false;
 
     lying.claim.counted = true;
     statsRef.current.filipFooled += 1;
     runRef.current.filipFooled += 1;
+    return true; // javljamo da je ovaj klik već izbrojan
   }, []);
 
   const handleHit = useCallback(
@@ -557,7 +637,10 @@ export default function App() {
       if (screen !== 'playing' || endingRef.current || entity.dying || entity.expiring) return;
 
       // Klik na bilo šta drugo na strani na koju te je Filip poslao.
-      noteFooledIfFollowed(entity.x, entity.id);
+      // Vraća true ako je OVAJ klik već ušao u "preveslao te", da se isti
+      // potez ne bi izbrojao dvaput (npr. klik na Filipa koji stoji na
+      // strani na koju je drugi Filip lažno uputio).
+      const countedBySide = noteFooledIfFollowed(entity.x, entity.id);
 
       updateEntities((prev) =>
         prev.map((e) => (e.id === entity.id ? { ...e, dying: true, line: null } : e))
@@ -585,7 +668,7 @@ export default function App() {
               // Poslušala ga je i bio je u pravu.
               addScore(SCORES.filipPovjerenje);
               statsRef.current.filipTrusted += 1;
-              runRef.current.filipTrusted = (runRef.current.filipTrusted ?? 0) + 1;
+              runRef.current.filipTrusted += 1;
               showFloat(x, y, `OVAJ PUT TI JE POMOGAO! +${SCORES.matija + SCORES.filipPovjerenje}`, 'great');
             } else {
               // Lagao je, ali si ga svejedno našla.
@@ -636,16 +719,34 @@ export default function App() {
           addScore(SCORES.vino);
           statsRef.current.vino += 1;
           playSound('vino');
-          showFloat(x, y, `AAA NE NE! ${SCORES.vino}`, 'bad');
+          // Ako je ovo vino koje je Filip podmetnuo lažnom uputom, reci to
+          // naglas — inače igrač ne poveže kaznu sa njegovim savjetom.
+          showFloat(
+            x,
+            y,
+            entity.decoyClaim ? `FILIP TE PREVESLAO! ${SCORES.vino}` : `AAA NE NE! ${SCORES.vino}`,
+            'bad'
+          );
           breakCombo();
           break;
 
-        case 'filip':
+        case 'filip': {
           addScore(SCORES.filipKlik);
           playSound('vino');
-          showFloat(x, y, `ŠTO MENE!? ${SCORES.filipKlik}`, 'bad');
+
+          // Klik na Filipa UVIJEK znači da te dobio — pola njegovih fora je
+          // baš "klikni mene". Jedini uslov je da isti potez nije već
+          // izbrojan preko strane na koju te je uputio.
+          if (!countedBySide) {
+            if (entity.claim && !entity.claim.counted) entity.claim.counted = true;
+            statsRef.current.filipFooled += 1;
+            runRef.current.filipFooled += 1;
+          }
+
+          showFloat(x, y, `PREVESLAO TE! ${SCORES.filipKlik}`, 'bad');
           breakCombo();
           break;
+        }
 
         case 'ana':
           playSound('ana');
@@ -788,6 +889,7 @@ export default function App() {
         combo={operation.hasCombo ? combo : 0}
         showAnaWarning={anaInPlay}
         showWineNote={wineInPlay && operation.id === 4}
+        penalty={penalty}
         muted={muted}
         onToggleMute={toggleMute}
       />

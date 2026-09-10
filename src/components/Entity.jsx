@@ -5,12 +5,14 @@ import Sprite from './Sprite.jsx';
  * svoja boja okvira, svoja oznaka i svoj nagib.
  */
 const LOOK = {
-  matija: { ring: 'bg-blue', badge: 'META', badgeTone: 'bg-blue text-cream', tilt: -4 },
-  nicko: { ring: 'bg-lime', badge: 'BONUS', badgeTone: 'bg-lime text-ink', tilt: 5 },
-  hrana: { ring: 'bg-yellow', badge: null, tilt: -3 },
-  vino: { ring: 'bg-red', badge: 'NE!', badgeTone: 'bg-red text-cream', tilt: 6 },
-  filip: { ring: 'bg-purple', badge: 'FILIP', badgeTone: 'bg-purple text-cream', tilt: 4 },
-  ana: { ring: 'hazard-stripes', badge: null, tilt: -6 },
+  matija: { ring: 'bg-blue', tilt: -4 },
+  nicko: { ring: 'bg-lime', tilt: 5 },
+  hrana: { ring: 'bg-yellow', tilt: -3 },
+  vino: { ring: 'bg-red', tilt: 6 },
+  filip: { ring: 'bg-purple', tilt: 4 },
+  // Ana nosi ISTI okvir kao Matija: mora se prepoznati po licu, ne po boji.
+  // To je i poenta — nju treba pogledati prije nego što se tapne.
+  ana: { ring: 'bg-blue', tilt: -6 },
 };
 
 /**
@@ -22,7 +24,7 @@ const LOOK = {
  * centriranje — element bi visio dolje-desno i mogao bi iscuriti iz polja.
  */
 export default function Entity({ entity, onHit }) {
-  const { type, x, y, size, image, emoji, dying, expiring, line, highlight, nudge } = entity;
+  const { type, x, y, size, image, emoji, dying, expiring, line, claims, highlight, nudge } = entity;
   const gone = dying || expiring;
   const look = LOOK[type] ?? LOOK.hrana;
 
@@ -58,25 +60,6 @@ export default function Entity({ entity, onHit }) {
           <Sprite src={image} emoji={emoji} size={size} />
         </span>
 
-        {/* Oznaka lika — mali badge preko ugla. */}
-        {look.badge && !gone && (
-          <span
-            className={`pointer-events-none absolute -bottom-2 -right-2 rounded-md border-2 border-ink px-1.5 py-[1px] font-ui text-[9px] font-black uppercase tracking-wide shadow-sticker ${look.badgeTone}`}
-          >
-            {look.badge}
-          </span>
-        )}
-
-        {/* Ana: najjači tretman u igri — klik na nju je kraj. */}
-        {type === 'ana' && !gone && (
-          <>
-            <span className="animate-dangerRing pointer-events-none absolute inset-0 rounded-2xl" />
-            <span className="pointer-events-none absolute -bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border-2 border-ink bg-red px-2 py-[2px] font-ui text-[10px] font-black uppercase tracking-wider text-cream shadow-sticker">
-              ⛔ ne diraj
-            </span>
-          </>
-        )}
-
         {/* Element istaknut u tutorialu. */}
         {highlight && !gone && (
           <span className="animate-glowRing pointer-events-none absolute inset-0 rounded-2xl" />
@@ -93,7 +76,11 @@ export default function Entity({ entity, onHit }) {
             }`}
           >
             <span className="animate-bubbleIn relative block rounded-2xl border-[3px] border-ink bg-cream px-3 py-1.5 text-center font-ui text-[12px] font-black leading-tight text-ink shadow-sticker">
+              {/* Strelica prema strani koju tvrdi — bez nje se u brzini ne stigne
+                  pročitati kuda te šalje, pa cijela fora prolazi neprimijećeno. */}
+              {claims === 'lijevo' && '👈 '}
               {line}
+              {claims === 'desno' && ' 👉'}
               <span
                 className={`absolute -bottom-[11px] h-0 w-0 border-t-[11px] border-t-ink ${
                   x >= 62

@@ -4,13 +4,27 @@ import { TUNING } from './config.js';
 
 export const randomFrom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
+// Posljednja upotrijebljena slika po liku — da se ista ne ponovi dva puta
+// zaredom. Bez toga se pri malom broju pojavljivanja (Ana) čini kao da lik
+// uvijek ima istu fotografiju, iako se bira nasumično.
+const lastImage = new Map();
+
 /**
  * Nasumična slika iz niza varijacija za nekog lika.
  * Ne pretpostavlja broj slika — radi i sa jednom i sa dvadeset.
+ * `key` (tip lika) uključuje pravilo "nikad ista dva puta zaredom".
  * Vraća null za prazan niz (tada Sprite prikaže emoji).
  */
-export const getRandomImage = (images) =>
-  Array.isArray(images) && images.length > 0 ? randomFrom(images) : null;
+export function getRandomImage(images, key = null) {
+  if (!Array.isArray(images) || images.length === 0) return null;
+  if (images.length === 1) return images[0];
+
+  const pool = key ? images.filter((img) => img !== lastImage.get(key)) : images;
+  const picked = randomFrom(pool.length ? pool : images);
+
+  if (key) lastImage.set(key, picked);
+  return picked;
+}
 
 export const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
