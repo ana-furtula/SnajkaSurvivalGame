@@ -7,7 +7,7 @@ export default function StartScreen({ onStart }) {
       {/* Naljepnice oko logotipa — namjerno nakrivo. */}
       <div className="flex items-center gap-2">
         <Sticker tone="pink" rotate={-6}>
-          Family chaos
+          Porodični haos
         </Sticker>
         <Sticker tone="blue" rotate={5}>
           5 levela

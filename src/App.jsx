@@ -586,12 +586,12 @@ export default function App() {
               addScore(SCORES.filipPovjerenje);
               statsRef.current.filipTrusted += 1;
               runRef.current.filipTrusted = (runRef.current.filipTrusted ?? 0) + 1;
-              showFloat(x, y, `POSLUŠALA SI GA! +${SCORES.matija + SCORES.filipPovjerenje}`, 'great');
+              showFloat(x, y, `OVAJ PUT TI JE POMOGAO! +${SCORES.matija + SCORES.filipPovjerenje}`, 'great');
             } else {
               // Lagao je, ali si ga svejedno našla.
               statsRef.current.filipCaught += 1;
               runRef.current.filipCaught += 1;
-              showFloat(x, y, `NIJE TE PREVESLAO! +${SCORES.matija}`, 'good');
+              showFloat(x, y, `BRAVO! PROVALILA SI GA! +${SCORES.matija}`, 'good');
             }
           } else {
             showFloat(x, y, `BONK! +${SCORES.matija}`, 'good');
@@ -621,7 +621,7 @@ export default function App() {
             } else {
               addScore(SCORES.hranaPogresna);
               playSound('hranaPogresna');
-              showFloat(x, y, `NIJE TO. ${SCORES.hranaPogresna}`, 'bad');
+              showFloat(x, y, `NEEE. ${SCORES.hranaPogresna}`, 'bad');
               breakCombo();
             }
           } else {
@@ -636,14 +636,14 @@ export default function App() {
           addScore(SCORES.vino);
           statsRef.current.vino += 1;
           playSound('vino');
-          showFloat(x, y, `NE DIRAJ VINO! ${SCORES.vino}`, 'bad');
+          showFloat(x, y, `AAA NE NE! ${SCORES.vino}`, 'bad');
           breakCombo();
           break;
 
         case 'filip':
           addScore(SCORES.filipKlik);
           playSound('vino');
-          showFloat(x, y, `TO JE FILIP. ${SCORES.filipKlik}`, 'bad');
+          showFloat(x, y, `ŠTO MENE!? ${SCORES.filipKlik}`, 'bad');
           breakCombo();
           break;
 
