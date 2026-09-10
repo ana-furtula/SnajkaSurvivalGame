@@ -709,7 +709,7 @@ export default function App() {
   // ------------------------------------------------------------------
 
   const shell =
-    'relative mx-auto flex h-[100dvh] w-full max-w-md flex-col overflow-hidden bg-ivory text-ink';
+    'arcade-bg relative mx-auto flex h-[100dvh] w-full max-w-md flex-col overflow-hidden text-cream';
 
   const toggleMute = () => setMuted((m) => !m);
   const floatingMute = <MuteButton muted={muted} onToggle={toggleMute} floating />;
@@ -796,7 +796,7 @@ export default function App() {
       <main
         ref={fieldRef}
         onPointerDown={handleFieldTap}
-        className="relative m-3 flex-1 overflow-hidden rounded-2xl border border-gold/40 bg-cream"
+        className="arcade-grid relative m-3 flex-1 overflow-hidden rounded-2xl border-[3px] border-cyan shadow-sticker-lg"
       >
         {entities.map((entity) => (
           <Entity key={entity.id} entity={entity} onHit={handleHit} />
@@ -816,7 +816,7 @@ export default function App() {
 
         {banner && <Banner banner={banner} />}
 
-        {hurt && <div className="pointer-events-none absolute inset-0 z-20 bg-alarm/35" />}
+        {hurt && <div className="pointer-events-none absolute inset-0 z-20 bg-red/40" />}
       </main>
     </div>
   );

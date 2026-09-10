@@ -10,9 +10,9 @@ body,
 
 body {
   margin: 0;
-  background: #211d1d;
-  color: #211d1d;
-  font-family: Jost, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: #0c0a1a;
+  color: #fff6e5;
+  font-family: Rubik, system-ui, -apple-system, 'Segoe UI', sans-serif;
   /* Igra je full-screen tap-fest: gasimo scroll bounce, dupli-tap zoom i plavi highlight. */
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
@@ -26,10 +26,63 @@ img {
   user-drag: none;
 }
 
-/* Tanka zlatna linija — dekorativni motiv pozivnice. */
-.rule-gold {
-  height: 1px;
-  background: linear-gradient(to right, transparent, #b99a5b, transparent);
+/* ---------------------------------------------------------------------------
+   Arcade jezik: debeli crni obrub, tvrda sjenka bez blura, jarke boje.
+   --------------------------------------------------------------------------- */
+
+/* Krupan tekst sa obrubom — samo za velike naslove, na sitnom smeta.
+   Obrub je SVIJETAO jer skoro sav krupan tekst stoji na tamnoj podlozi:
+   crni obrub bi se stopio sa pozadinom i slova bi se gubila. */
+.outline-text {
+  -webkit-text-stroke: 3px #fff6e5;
+  paint-order: stroke fill;
+  text-shadow: 0 4px 0 rgba(12, 10, 26, 0.55);
+}
+
+.outline-text-sm {
+  -webkit-text-stroke: 2px #fff6e5;
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 rgba(12, 10, 26, 0.5);
+}
+
+/* Za tekst na SVIJETLOJ podlozi (kartica finalnog rezultata) obrub je crn. */
+.outline-text-dark {
+  -webkit-text-stroke: 2px #0c0a1a;
+  paint-order: stroke fill;
+}
+
+/* Sitne oznake: bez stroke-a (pojede slova), samo tvrda sjenka. */
+.hard-shadow {
+  text-shadow: 2px 2px 0 #0c0a1a;
+}
+
+/* Šarena "disco" podloga iza cijele igre.
+   Namjerno NIJE crna: crni obrubi i sjenke su nosilac cijelog stila, pa im
+   treba podloga na kojoj se vide. Na crnoj bi svaki okvir nestao. */
+.arcade-bg {
+  background-color: #0e0620;
+  background-image:
+    radial-gradient(circle at 12% 6%, rgba(255, 46, 147, 0.4), transparent 45%),
+    radial-gradient(circle at 88% 10%, rgba(34, 224, 255, 0.3), transparent 45%),
+    radial-gradient(circle at 50% 100%, rgba(138, 43, 255, 0.45), transparent 55%);
+}
+
+/* Kockasta podloga igraćeg polja — tamnija od panela, da likovi iskaču. */
+.arcade-grid {
+  background-color: #1a1040;
+  background-image:
+    linear-gradient(rgba(255, 246, 229, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 246, 229, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Traka u stilu upozorenja (Ana, vino). */
+.hazard-stripes {
+  background-image: repeating-linear-gradient(
+    45deg,
+    #ffd200 0 10px,
+    #0c0a1a 10px 20px
+  );
 }
 
 /* ---------------------------------------------------------------------------
@@ -37,7 +90,7 @@ img {
 
    NE smije se gasiti sve odjednom skraćivanjem trajanja: animacije sa
    `forwards` bi tada odmah skočile na svoj završni kadar, a "floatUp",
-   "starburst" i "bannerIn" završavaju na opacity: 0 — poruke o bodovima,
+   "burst" i "bannerIn" završavaju na opacity: 0 — poruke o bodovima,
    zvjezdice i banneri bi postali potpuno nevidljivi.
 
    Zato: dekorativno kretanje gasimo, a onome što nosi informaciju dajemo
@@ -48,13 +101,18 @@ img {
   .animate-bubbleIn,
   .animate-nudge,
   .animate-shake,
+  .animate-wobble,
+  .animate-blink,
   .animate-glowRing,
-  .animate-tick {
+  .animate-dangerRing,
+  .animate-tick,
+  .animate-popIn,
+  .animate-slamIn {
     animation: none !important;
   }
 
   .animate-floatUp,
-  .animate-starburst,
+  .animate-burst,
   .animate-bannerIn {
     animation: none !important;
     opacity: 1 !important;

@@ -1,13 +1,13 @@
 import { OPERATIONS, BONK_VERDICTS } from '../config.js';
-import { GoldRule, OperationMark, PrimaryButton, Sheet } from '../components/ui.jsx';
+import { LevelBadge, PrimaryButton, Sheet, Sticker } from '../components/ui.jsx';
 
 function Stat({ label, value }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 border-b border-gold/25 py-1.5 last:border-0">
-      <span className="font-ui text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/60">
+    <div className="flex items-center justify-between gap-3 border-b-2 border-dashed border-cream/20 py-1.5 last:border-0">
+      <span className="font-ui text-[11px] font-black uppercase tracking-[0.1em] text-cream/70">
         {label}
       </span>
-      <span className="font-ui text-lg font-bold tabular-nums text-burgundy">{value}</span>
+      <span className="font-display text-base tabular-nums text-cyan">{value}</span>
     </div>
   );
 }
@@ -21,23 +21,25 @@ export default function OperationResult({ operation, run, score, isLast, onNext 
 
   return (
     <Sheet>
-      <OperationMark code={operation.code} total={OPERATIONS.length} />
+      <LevelBadge code={operation.code} total={OPERATIONS.length} />
 
-      <h2 className="font-display text-4xl font-bold uppercase leading-tight tracking-tight text-burgundy">
+      <h2 className="outline-text-sm animate-slamIn font-display text-[1.75rem] uppercase leading-[0.95] text-lime">
         {operation.resultTitle ?? 'Operacija završena'}
       </h2>
 
-      <GoldRule />
-
-      <div className="w-full max-w-xs rounded-2xl border border-gold/40 bg-cream px-5 py-3">
-        <div className="text-center">
-          <div className="font-ui text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">
+      {/* Veliki skor operacije */}
+      <div className="animate-popIn relative w-full max-w-xs rounded-2xl border-[3px] border-cyan bg-night px-4 py-3 shadow-sticker-lg">
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+          <Sticker tone="pink" rotate={-4}>
             Rezultat operacije
-          </div>
-          <div className="font-ui text-4xl font-bold tabular-nums text-burgundy">
+          </Sticker>
+        </div>
+
+        <div className="pt-2 text-center">
+          <div className="outline-text font-display text-5xl leading-none tabular-nums text-yellow">
             {run.score >= 0 ? `+${run.score}` : run.score}
           </div>
-          <div className="mt-1 font-ui text-[11px] uppercase tracking-wide text-ink/50">
+          <div className="mt-1 font-ui text-[11px] font-black uppercase tracking-[0.15em] text-cream/60">
             ukupno: {score}
           </div>
         </div>
@@ -57,11 +59,13 @@ export default function OperationResult({ operation, run, score, isLast, onNext 
       </div>
 
       {operation.id === 2 && bonkVerdict && (
-        <p className="font-display text-2xl font-semibold text-burgundy">{bonkVerdict}</p>
+        <p className="hard-shadow max-w-xs font-pop text-lg uppercase leading-tight text-pink">
+          {bonkVerdict}
+        </p>
       )}
 
       {operation.id === 4 && (
-        <p className="max-w-xs text-sm leading-snug text-ink/75">
+        <p className="max-w-xs font-ui text-sm font-medium leading-snug text-cream/80">
           Preživjela si Filipa. To je već ozbiljan napredak.
         </p>
       )}
@@ -69,15 +73,15 @@ export default function OperationResult({ operation, run, score, isLast, onNext 
       {operation.resultText && (
         <div className="flex max-w-xs flex-col gap-1">
           {operation.resultText.map((line) => (
-            <p key={line} className="text-sm leading-snug text-ink/75">
+            <p key={line} className="font-ui text-sm font-medium leading-snug text-cream/80">
               {line}
             </p>
           ))}
         </div>
       )}
 
-      <PrimaryButton onClick={onNext}>
-        {isLast ? 'Finalni rezultat' : 'Sledeća operacija'}
+      <PrimaryButton onClick={onNext} tone={isLast ? 'pink' : 'lime'}>
+        {isLast ? '🏆 Finalni rezultat' : 'Sledeća operacija ▶'}
       </PrimaryButton>
     </Sheet>
   );

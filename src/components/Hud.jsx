@@ -1,28 +1,39 @@
 import MuteButton from './MuteButton.jsx';
 
-/** Traka trenutne želje. `cravingId` je ključ — re-montira i ponovo pokreće animacije. */
+/** Arcade format: 00:12 */
+function clock(seconds) {
+  const s = Math.max(0, seconds);
+  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+
+/** Skor kao na automatu: 048. Negativan ostaje čitljiv. */
+function scoreLabel(value) {
+  return value < 0 ? `-${String(Math.abs(value)).padStart(2, '0')}` : String(value).padStart(3, '0');
+}
+
+/** Traka trenutne želje. `cravingId` je ključ — re-montira i pokreće animacije. */
 function CravingBar({ craving, cravingEvery }) {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-gold/60 bg-cream px-3 py-2">
-      <div className="flex items-center gap-3">
+    <div className="animate-popIn relative overflow-hidden rounded-xl border-[3px] border-ink bg-yellow px-3 py-1.5 shadow-sticker">
+      <div className="flex items-center gap-2.5">
         <span className="animate-pop text-3xl leading-none">{craving.emoji}</span>
-        <div className="min-w-0 flex-1">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gold">
-            Trenutna želja
+        <div className="min-w-0 flex-1 text-left">
+          <div className="font-ui text-[10px] font-black uppercase tracking-[0.16em] text-ink/70">
+            Trenutno se traži
           </div>
-          <div className="truncate font-ui text-xl font-bold leading-tight text-burgundy">
+          <div className="truncate font-display text-xl uppercase leading-tight text-ink">
             {craving.name}
           </div>
         </div>
-        <span className="animate-flashOut rounded-full bg-burgundy px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-cream">
-          novo
+        <span className="animate-flashOut rounded-md border-2 border-ink bg-pink px-2 py-[2px] font-ui text-[10px] font-black uppercase text-cream">
+          novo!
         </span>
       </div>
 
       {/* Koliko još traje ova želja. */}
-      <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-blush">
+      <div className="mt-1 h-1.5 overflow-hidden rounded-full border-2 border-ink bg-ink/20">
         <div
-          className="animate-drain h-full rounded-full bg-gold"
+          className="animate-drain h-full bg-pink"
           style={{ animationDuration: `${cravingEvery}ms` }}
         />
       </div>
@@ -30,7 +41,7 @@ function CravingBar({ craving, cravingEvery }) {
   );
 }
 
-/** Gornja traka: oznaka operacije, rezultat, vrijeme, želja i upozorenja. */
+/** Gornja traka: level, vrijeme, skor i upozorenja. */
 export default function Hud({
   operation,
   totalOperations,
@@ -50,72 +61,74 @@ export default function Hud({
 
   return (
     <header className="shrink-0 px-3 pt-3">
-      <div className="flex items-stretch gap-2">
-        <div className="flex-1 rounded-xl border border-gold/40 bg-cream px-3 py-1.5">
-          <div className="font-ui text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">
-            Operacija {operation.code} / 0{totalOperations}
-          </div>
-          <div className="truncate font-ui text-sm font-bold uppercase tracking-wide text-burgundy">
+      {/* Red 1: ime levela + mute */}
+      <div className="flex items-center gap-2">
+        <span className="shrink-0 rounded-lg border-[3px] border-ink bg-pink px-2 py-1 font-display text-[11px] uppercase leading-none text-cream shadow-sticker">
+          Lvl {operation.code}/0{totalOperations}
+        </span>
+        <div className="min-w-0 flex-1 rounded-lg border-[3px] border-ink bg-purple px-2 py-1 shadow-sticker">
+          <div className="truncate font-display text-sm uppercase leading-tight text-cream">
             {operation.name}
           </div>
         </div>
-
-        <div
-          className={`w-16 rounded-xl border px-1 py-1 text-center ${
-            low ? 'animate-nudge border-alarm bg-alarm' : 'border-gold/40 bg-cream'
-          }`}
-        >
-          <div
-            className={`text-[9px] font-semibold uppercase tracking-widest ${
-              low ? 'text-cream/80' : 'text-gold'
-            }`}
-          >
-            Vrijeme
-          </div>
-          <div
-            className={`font-ui text-2xl font-bold tabular-nums leading-tight ${
-              low ? 'text-cream' : 'text-ink'
-            }`}
-          >
-            {timeLeft}
-          </div>
-        </div>
-
-        <div className="w-[4.5rem] rounded-xl border border-gold/40 bg-cream px-1 py-1 text-center">
-          <div className="text-[9px] font-semibold uppercase tracking-widest text-gold">Rezultat</div>
-          <div className="font-ui text-2xl font-bold tabular-nums leading-tight text-burgundy">
-            {score}
-          </div>
-        </div>
-
         <MuteButton muted={muted} onToggle={onToggleMute} />
       </div>
 
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        {typeof bonks === 'number' && (
-          <span className="rounded-full border border-burgundy/25 bg-cream px-2.5 py-[3px] font-ui text-[11px] font-semibold text-burgundy">
-            👨 {bonks}
-          </span>
-        )}
+      {/* Red 2: vrijeme i skor — velike arcade brojke */}
+      <div className="mt-2 flex items-stretch gap-2">
+        <div
+          className={`flex-1 rounded-xl border-[3px] px-3 py-1 shadow-sticker ${
+            low ? 'animate-nudge border-cream bg-red' : 'border-cyan bg-night'
+          }`}
+        >
+          <div className="font-ui text-[9px] font-black uppercase tracking-[0.2em] text-cream/60">
+            Vrijeme
+          </div>
+          <div
+            className={`font-display text-2xl leading-none tabular-nums ${low ? 'text-cream' : 'text-cyan'}`}
+          >
+            {clock(timeLeft)}
+          </div>
+        </div>
 
-        {combo >= 3 && (
-          <span className="rounded-full bg-burgundy px-2.5 py-[3px] font-ui text-[11px] font-bold uppercase tracking-wide text-cream">
-            combo ×{combo}
-          </span>
-        )}
-
-        {showWineNote && (
-          <span className="rounded-full border border-alarm/40 bg-cream px-2.5 py-[3px] font-ui text-[11px] font-semibold text-alarm">
-            🍷 znaš već zašto
-          </span>
-        )}
-
-        {showAnaWarning && (
-          <span className="animate-nudge ml-auto rounded-full bg-alarm px-2.5 py-[3px] font-ui text-[11px] font-bold uppercase tracking-wide text-cream">
-            👩 ne diraj Anu!
-          </span>
-        )}
+        <div className="flex-1 rounded-xl border-[3px] border-yellow bg-night px-3 py-1 shadow-sticker">
+          <div className="font-ui text-[9px] font-black uppercase tracking-[0.2em] text-cream/60">
+            Score
+          </div>
+          <div className="font-display text-2xl leading-none tabular-nums text-yellow">
+            {scoreLabel(score)}
+          </div>
+        </div>
       </div>
+
+      {/* Red 3: oznake specifične za operaciju */}
+      {(typeof bonks === 'number' || combo >= 3 || showWineNote || showAnaWarning) && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          {typeof bonks === 'number' && (
+            <span className="rounded-md border-2 border-ink bg-blue px-2 py-[2px] font-ui text-[11px] font-black text-cream shadow-sticker">
+              👊 {bonks}
+            </span>
+          )}
+
+          {combo >= 3 && (
+            <span className="animate-wobble rounded-md border-2 border-ink bg-lime px-2 py-[2px] font-ui text-[11px] font-black uppercase text-ink shadow-sticker">
+              combo ×{combo}
+            </span>
+          )}
+
+          {showWineNote && (
+            <span className="rounded-md border-2 border-ink bg-red px-2 py-[2px] font-ui text-[11px] font-black uppercase text-cream shadow-sticker">
+              🍷 ne diraj
+            </span>
+          )}
+
+          {showAnaWarning && (
+            <span className="animate-blink ml-auto rounded-md border-2 border-ink bg-red px-2 py-[2px] font-ui text-[11px] font-black uppercase tracking-wide text-cream shadow-sticker">
+              ⛔ Ana — ne diraj
+            </span>
+          )}
+        </div>
+      )}
 
       {craving && (
         <div className="mt-2">

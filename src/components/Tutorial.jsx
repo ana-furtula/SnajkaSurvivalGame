@@ -81,14 +81,16 @@ export default function Tutorial({ kind, onDone }) {
     const closing = script[script.length - 1]?.after;
     return (
       <div className="flex w-full flex-col items-center gap-3">
-        {closing && <p className="max-w-xs text-sm italic text-ink/70">{closing}</p>}
-        <p className="font-display text-3xl font-semibold text-burgundy">Spremna?</p>
+        {closing && (
+          <p className="max-w-xs font-ui text-sm font-medium leading-snug text-cream/75">{closing}</p>
+        )}
+        <p className="outline-text font-display text-3xl uppercase text-lime">Spremna?</p>
         <button
           type="button"
           onClick={onDone}
-          className="w-full max-w-xs rounded-full bg-burgundy px-7 py-3.5 font-ui text-base font-bold uppercase tracking-[0.12em] text-cream ring-1 ring-gold/50 shadow-[0_5px_0_#45141c] transition active:translate-y-1 active:shadow-none"
+          className="w-full max-w-xs rounded-xl border-[3px] border-ink bg-lime px-6 py-4 font-display text-lg uppercase leading-none tracking-wide text-ink shadow-press transition active:translate-y-[5px] active:shadow-none"
         >
-          Pokreni operaciju
+          ▶ Pokreni operaciju
         </button>
       </div>
     );
@@ -101,23 +103,23 @@ export default function Tutorial({ kind, onDone }) {
         {script.map((_, i) => (
           <span
             key={i}
-            className={`h-1.5 rounded-full transition-all ${
-              i === stepIndex ? 'w-6 bg-burgundy' : i < stepIndex ? 'w-1.5 bg-gold' : 'w-1.5 bg-blush'
+            className={`h-2 rounded-full border-2 border-ink transition-all ${
+              i === stepIndex ? 'w-7 bg-pink' : i < stepIndex ? 'w-2 bg-lime' : 'w-2 bg-cream/25'
             }`}
           />
         ))}
       </div>
 
       {cravingFood && (
-        <div className="rounded-full border border-gold bg-cream px-3 py-1 font-ui text-xs font-bold uppercase tracking-wide text-burgundy">
+        <div className="rounded-lg border-[3px] border-ink bg-yellow px-3 py-1 font-display text-xs uppercase text-ink shadow-sticker">
           Trenutna želja: {cravingFood.emoji} {cravingFood.name}
         </div>
       )}
 
       {step.note && (
         <div
-          className={`rounded-full px-3 py-1 font-ui text-[11px] font-bold uppercase tracking-wide ${
-            step.note.tone === 'bad' ? 'bg-alarm text-cream' : 'bg-sage text-cream'
+          className={`rounded-lg border-[3px] border-ink px-3 py-1 font-display text-[11px] uppercase shadow-sticker ${
+            step.note.tone === 'bad' ? 'bg-red text-cream' : 'bg-lime text-ink'
           }`}
         >
           {step.note.text}
@@ -125,7 +127,7 @@ export default function Tutorial({ kind, onDone }) {
       )}
 
       {/* Demo polje */}
-      <div className="relative h-52 w-full max-w-xs overflow-visible rounded-2xl border border-gold/40 bg-ivory">
+      <div className="arcade-grid relative h-52 w-full max-w-xs overflow-visible rounded-2xl border-[3px] border-cyan shadow-sticker-lg">
         {entities.map((entity) => (
           <Entity key={entity.id} entity={entity} onHit={handleHit} />
         ))}
@@ -133,12 +135,12 @@ export default function Tutorial({ kind, onDone }) {
         {feedback && (
           <div className="pointer-events-none absolute inset-x-2 bottom-2 z-30">
             <div
-              className={`rounded-full px-3 py-1.5 text-center font-ui text-sm font-bold ${
+              className={`rounded-xl border-[3px] border-ink px-3 py-1.5 text-center font-pop text-sm uppercase shadow-sticker ${
                 feedback.tone === 'bad'
-                  ? 'bg-alarm text-cream'
+                  ? 'bg-red text-cream'
                   : feedback.tone === 'great'
-                    ? 'bg-gold text-ink'
-                    : 'bg-sage text-cream'
+                    ? 'bg-yellow text-ink'
+                    : 'bg-lime text-ink'
               }`}
             >
               {feedback.text}
@@ -147,7 +149,7 @@ export default function Tutorial({ kind, onDone }) {
         )}
       </div>
 
-      <p className="font-ui text-sm font-bold uppercase tracking-[0.14em] text-burgundy">
+      <p className="hard-shadow font-pop text-base uppercase leading-tight tracking-wide text-cyan">
         {step.prompt}
       </p>
     </div>

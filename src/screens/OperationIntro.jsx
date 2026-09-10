@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { OPERATIONS } from '../config.js';
 import Tutorial from '../components/Tutorial.jsx';
-import { GoldRule, OperationMark, PrimaryButton, Sheet } from '../components/ui.jsx';
+import { LevelBadge, Panel, PrimaryButton, Sheet, StarRule } from '../components/ui.jsx';
 
 /**
  * Uvod u operaciju: šta se traži, pa (ako se uvodi nova mehanika)
@@ -14,34 +14,38 @@ export default function OperationIntro({ operation, onStart }) {
 
   return (
     <Sheet>
-      <OperationMark code={operation.code} total={OPERATIONS.length} />
+      <LevelBadge code={operation.code} total={OPERATIONS.length} />
 
-      <h2 className="font-display text-4xl font-bold uppercase leading-tight tracking-tight text-burgundy">
+      <h2 className="outline-text-sm animate-slamIn font-display text-[1.9rem] uppercase leading-[0.95] tracking-tight text-yellow">
         {operation.name}
       </h2>
 
-      <GoldRule />
+      <StarRule />
 
       {!showTutorial && (
         <>
-          <div className="flex max-w-xs flex-col gap-1.5">
-            {operation.intro.map((line) => (
-              <p key={line} className="text-[0.95rem] leading-snug text-ink/80">
-                {line}
-              </p>
-            ))}
-          </div>
+          <Panel>
+            <div className="flex flex-col gap-1.5 text-left">
+              {operation.intro.map((line) => (
+                <p key={line} className="font-ui text-[0.95rem] font-medium leading-snug text-cream">
+                  {line}
+                </p>
+              ))}
+            </div>
+          </Panel>
 
           {operation.warning && (
-            <p className="max-w-xs rounded-xl border border-alarm/40 bg-alarm/10 px-4 py-2 font-ui text-sm font-bold uppercase tracking-wide text-alarm">
+            <p className="animate-blink w-full max-w-xs rounded-xl border-[3px] border-ink bg-red px-4 py-2 font-pop text-base uppercase leading-tight tracking-wide text-cream shadow-sticker">
               {operation.warning}
             </p>
           )}
 
           {hasTutorial ? (
-            <PrimaryButton onClick={() => setShowTutorial(true)}>Pokaži mi</PrimaryButton>
+            <PrimaryButton onClick={() => setShowTutorial(true)} tone="yellow">
+              Pokaži mi
+            </PrimaryButton>
           ) : (
-            <PrimaryButton onClick={onStart}>
+            <PrimaryButton onClick={onStart} tone="lime">
               {operation.startLabel ?? 'Pokreni operaciju'}
             </PrimaryButton>
           )}

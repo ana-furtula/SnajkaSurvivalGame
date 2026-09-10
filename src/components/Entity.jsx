@@ -1,27 +1,30 @@
 import Sprite from './Sprite.jsx';
 
-// Prsten oko svakog tipa — da se i sa emoji fallbackom odmah vidi ko je ko.
-const RING = {
-  matija: 'bg-cream ring-burgundy/45',
-  nicko: 'bg-cream ring-sage/50',
-  hrana: 'bg-cream ring-gold/70',
-  vino: 'bg-cream ring-alarm/60',
-  filip: 'bg-cream ring-burgundy/30',
-  ana: 'bg-cream ring-alarm',
+/**
+ * Vizuelni tretman po liku. Svako je "karakter", a ne slika u krugu:
+ * svoja boja okvira, svoja oznaka i svoj nagib.
+ */
+const LOOK = {
+  matija: { ring: 'bg-blue', badge: 'META', badgeTone: 'bg-blue text-cream', tilt: -4 },
+  nicko: { ring: 'bg-lime', badge: 'BONUS', badgeTone: 'bg-lime text-ink', tilt: 5 },
+  hrana: { ring: 'bg-yellow', badge: null, tilt: -3 },
+  vino: { ring: 'bg-red', badge: 'NE!', badgeTone: 'bg-red text-cream', tilt: 6 },
+  filip: { ring: 'bg-purple', badge: 'FILIP', badgeTone: 'bg-purple text-cream', tilt: 4 },
+  ana: { ring: 'hazard-stripes', badge: null, tilt: -6 },
 };
 
 /**
  * Jedan element u polju.
  *
  * Pozicioniranje i animacija su namjerno razdvojeni na dva elementa:
- * spoljni div centrira element na svojim koordinatama, unutrašnji se
- * animira. Da su na istom elementu, keyframes bi prepisali `transform`
- * i time poništili centriranje — element bi visio dolje-desno od svoje
- * pozicije i mogao bi iscuriti izvan polja.
+ * spoljni div centrira element na koordinatama, unutrašnji se animira.
+ * Da su na istom, keyframes bi prepisali `transform` i poništili
+ * centriranje — element bi visio dolje-desno i mogao bi iscuriti iz polja.
  */
 export default function Entity({ entity, onHit }) {
   const { type, x, y, size, image, emoji, dying, expiring, line, highlight, nudge } = entity;
   const gone = dying || expiring;
+  const look = LOOK[type] ?? LOOK.hrana;
 
   const animation = dying
     ? 'animate-bonk'
@@ -44,28 +47,61 @@ export default function Entity({ entity, onHit }) {
           if (!gone) onHit(entity);
         }}
         aria-label={type}
-        className={`relative touch-none select-none rounded-full p-[3px] shadow-[0_6px_16px_-6px_rgba(33,29,29,0.5)] ring-2 ${
-          RING[type] ?? 'bg-cream ring-ink/30'
-        } ${animation} ${gone ? 'pointer-events-none' : ''}`}
+        className={`relative touch-none select-none rounded-2xl border-[3px] border-ink p-1 shadow-sticker-lg ${look.ring} ${animation} ${
+          gone ? 'pointer-events-none' : ''
+        }`}
+        // Nagib ide kroz `rotate`, a ne kroz `transform` — inače bi ga
+        // animacije (koje pišu transform) obrisale.
+        style={{ rotate: `${look.tilt}deg` }}
       >
-        <Sprite src={image} emoji={emoji} size={size} />
+        <span className="block overflow-hidden rounded-xl border-2 border-ink bg-ink">
+          <Sprite src={image} emoji={emoji} size={size} />
+        </span>
 
-        {/* Element istaknut u tutorialu. */}
-        {highlight && !gone && (
-          <span className="animate-glowRing pointer-events-none absolute inset-0 rounded-full ring-2 ring-gold" />
-        )}
-
-        {/* Ana nosi stalno upozorenje — nema izgovora. */}
-        {type === 'ana' && !gone && (
-          <span className="pointer-events-none absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-alarm px-2 py-[2px] text-[10px] font-bold uppercase tracking-wider text-cream">
-            KLIKNI MENE
+        {/* Oznaka lika — mali badge preko ugla. */}
+        {look.badge && !gone && (
+          <span
+            className={`pointer-events-none absolute -bottom-2 -right-2 rounded-md border-2 border-ink px-1.5 py-[1px] font-ui text-[9px] font-black uppercase tracking-wide shadow-sticker ${look.badgeTone}`}
+          >
+            {look.badge}
           </span>
         )}
 
-        {/* Filipov govorni balon. */}
+        {/* Ana: najjači tretman u igri — klik na nju je kraj. */}
+        {type === 'ana' && !gone && (
+          <>
+            <span className="animate-dangerRing pointer-events-none absolute inset-0 rounded-2xl" />
+            <span className="pointer-events-none absolute -bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border-2 border-ink bg-red px-2 py-[2px] font-ui text-[10px] font-black uppercase tracking-wider text-cream shadow-sticker">
+              ⛔ ne diraj
+            </span>
+          </>
+        )}
+
+        {/* Element istaknut u tutorialu. */}
+        {highlight && !gone && (
+          <span className="animate-glowRing pointer-events-none absolute inset-0 rounded-2xl" />
+        )}
+
+        {/* Filipov govorni balon — upada preko gameplaya.
+            Kad Filip stoji uz ivicu (a kod tvrdnji o smjeru uvijek stoji),
+            balon se veže za njegovu bližu stranu umjesto da bude centriran —
+            inače bi polovina teksta bila odsječena poljem. */}
         {line && !gone && (
-          <span className="animate-bubbleIn pointer-events-none absolute bottom-full left-1/2 mb-2 block w-max max-w-[52vw] -translate-x-1/2 rounded-2xl rounded-bl-sm border border-gold/50 bg-cream px-3 py-1.5 text-center text-[12px] font-medium leading-snug text-ink shadow-[0_4px_12px_-4px_rgba(33,29,29,0.4)]">
-            „{line}"
+          <span
+            className={`pointer-events-none absolute bottom-full mb-3 block w-max max-w-[52vw] ${
+              x >= 62 ? 'right-0' : x <= 38 ? 'left-0' : 'left-1/2 -translate-x-1/2'
+            }`}
+          >
+            <span className="animate-bubbleIn relative block rounded-2xl border-[3px] border-ink bg-cream px-3 py-1.5 text-center font-ui text-[12px] font-black leading-tight text-ink shadow-sticker">
+              {line}
+              <span
+                className={`absolute -bottom-[11px] h-0 w-0 border-t-[11px] border-t-ink ${
+                  x >= 62
+                    ? 'right-4 border-l-[10px] border-l-transparent'
+                    : 'left-4 border-r-[10px] border-r-transparent'
+                }`}
+              />
+            </span>
           </span>
         )}
       </button>

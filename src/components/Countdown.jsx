@@ -6,7 +6,7 @@ export default function Countdown({ value }) {
       className="animate-tick pointer-events-none absolute inset-0 z-20 flex items-center justify-center"
       aria-hidden="true"
     >
-      <span className="font-display text-[9rem] font-bold leading-none text-burgundy/25">
+      <span className="outline-text font-display text-[8rem] leading-none text-yellow/90">
         {value}
       </span>
     </div>

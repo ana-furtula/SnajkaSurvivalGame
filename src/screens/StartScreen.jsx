@@ -1,28 +1,44 @@
 import { OPERATIONS } from '../config.js';
-import { GoldRule, PrimaryButton, Sheet } from '../components/ui.jsx';
+import { PrimaryButton, Sheet, StarRule, Sticker } from '../components/ui.jsx';
 
 export default function StartScreen({ onStart }) {
   return (
     <Sheet>
-      <h1 className="font-display text-[3.25rem] font-bold uppercase leading-[0.95] tracking-tight text-burgundy">
-        Operacija
-        <br />
-        Snajka
-      </h1>
+      {/* Naljepnice oko logotipa — namjerno nakrivo. */}
+      <div className="flex items-center gap-2">
+        <Sticker tone="pink" rotate={-6}>
+          Family chaos
+        </Sticker>
+        <Sticker tone="blue" rotate={5}>
+          5 levela
+        </Sticker>
+      </div>
 
-      <GoldRule />
+      {/* Logo */}
+      <div className="animate-slamIn my-1">
+        <h1 className="font-display text-[2.6rem] uppercase leading-[0.85] tracking-tight">
+          <span className="outline-text block text-cyan">Operacija</span>
+          <span className="outline-text -mt-1 block text-[3.4rem] text-pink">Snajka</span>
+        </h1>
+      </div>
 
-      <p className="font-display text-lg italic leading-snug text-ink/80">
+      <StarRule />
+
+      <p className="hard-shadow font-pop text-xl uppercase leading-tight text-yellow">
         Dobrodošla među nas.
       </p>
 
-      <p className="max-w-xs text-sm leading-relaxed text-ink/75">
+      <p className="max-w-xs font-ui text-sm font-medium leading-relaxed text-cream/80">
         Sad da vidimo koliko si spremna.
       </p>
 
-      <PrimaryButton onClick={onStart}>Započni igru</PrimaryButton>
+      <div className="mt-1 w-full max-w-xs">
+        <PrimaryButton onClick={onStart} tone="lime">
+          ▶ Započni igru
+        </PrimaryButton>
+      </div>
 
-      <div className="font-ui text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
+      <div className="animate-blink font-ui text-[11px] font-black uppercase tracking-[0.18em] text-cream/70">
         {OPERATIONS.length} operacija • 2–3 minuta • 1 porodica
       </div>
     </Sheet>

@@ -5,17 +5,18 @@
 export default function Banner({ banner }) {
   const tone =
     banner.tone === 'bad'
-      ? 'bg-alarm text-cream'
+      ? 'bg-red text-cream'
       : banner.tone === 'combo'
-        ? 'bg-burgundy text-cream ring-1 ring-gold'
+        ? 'bg-lime text-ink'
         : banner.tone === 'phase'
-          ? 'bg-ink text-cream'
-          : 'bg-gold text-ink';
+          ? 'bg-purple text-cream'
+          : 'bg-yellow text-ink';
 
   return (
     <div className="pointer-events-none absolute inset-x-3 top-3 z-30">
       <div
-        className={`animate-bannerIn rounded-xl px-4 py-2.5 text-center font-ui text-sm font-bold uppercase leading-snug tracking-wide shadow-[0_6px_18px_-8px_rgba(33,29,29,0.7)] ${tone}`}
+        className={`animate-bannerIn rounded-xl border-[3px] border-ink px-3 py-2 text-center font-pop text-base uppercase leading-tight tracking-wide shadow-sticker-lg ${tone}`}
+        style={{ opacity: 1 }}
       >
         {banner.text}
       </div>

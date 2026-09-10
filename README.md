@@ -144,20 +144,32 @@ Dio zvukova (start, combo, near miss, odbrojavanje, fanfare, buzzer) generiše
 
 ## Vizuelni identitet
 
-Vjenčana pozivnica u sudaru sa arcade igrom.
+Retro arcade automat sa Y2K naljepnicama — mrak kao podloga, neon kao sve ostalo.
 
 | Boja | Hex | Uloga |
 |---|---|---|
-| Ivory | `#F7F2E8` | podloga |
-| Cream | `#FDFAF5` | kartice i polje |
-| Burgundy | `#641F2B` | naslovi, dugmad, rezultat |
-| Gold | `#B99A5B` | linije, oznake, akcenti |
-| Blush | `#E8D9D0` | tihe površine |
-| Sage | `#4E7A5A` | pozitivan feedback |
-| Alarm | `#C0392B` | greške, vino, Ana |
+| Ink | `#0C0A1A` | pozadina i **obrub svega** |
+| Night | `#191340` | paneli i igraće polje |
+| Cyan | `#22E0FF` | vrijeme, naglasci |
+| Pink | `#FF2E93` | logo, oznake levela |
+| Purple | `#8A2BFF` | Filip, naslovna traka |
+| Lime | `#A8FF1F` | Nićko, dugmad, dobar potez |
+| Yellow | `#FFD200` | skor, hrana, želje |
+| Red | `#FF2D2D` | vino, Ana, greške |
+| Blue | `#2E7BFF` | Matija (meta) |
+| Cream | `#FFF6E5` | tekst i svijetle kartice |
 
-Serif (**Cormorant Garamond**) nosi naslove, sans (**Jost**) HUD i gameplay.
-Motiv operacije je suptilan — oznake `01 / 05` i tanke zlatne linije, bez bolničkog izgleda.
+**Bungee** nosi naslove i brojke (arcade natpis), **Luckiest Guy** velike feedback poruke
+(BONK!, NJAM!), **Rubik** HUD i sitniji tekst.
+
+Vizuelni jezik je svuda isti: obrub od 3 px u `ink`, tvrda sjenka bez blura
+(`shadow-sticker`), jarka ispuna i lagani nagib. Pomoćne klase su u
+[src/index.css](src/index.css): `outline-text` (crni obrub oko krupnog teksta),
+`hard-shadow`, `arcade-bg`, `arcade-grid`, `hazard-stripes`.
+
+**Likovi su naljepnice, ne slike u krugu.** Svaki ima svoju boju okvira, nagib i
+oznaku: Matija `META`, Nićko `BONUS`, Filip `FILIP`, vino `NE!`. Ana ima najjači
+tretman — žuto-crne trake, pulsirajući crveni prsten i natpis `⛔ NE DIRAJ`.
 
 ---
 
