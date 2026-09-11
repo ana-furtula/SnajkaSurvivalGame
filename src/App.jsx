@@ -137,6 +137,7 @@ export default function App() {
   const cravingRef = useRef(null);
   const pendingCravingRef = useRef(null); // garantuje da se željena hrana pojavi
   const pendingAnaRef = useRef(null); // garantuje da se Ana bar jednom pojavi u završnoj fazi
+  const trioDoneRef = useRef(false); // zajednički nastup Matije, Filipa i Ane
   const bannerIdRef = useRef(0);
   const endedRef = useRef(false);
   const endingRef = useRef(false);
@@ -283,6 +284,7 @@ export default function App() {
     runRef.current = { ...emptyRun(), startScore: scoreRef.current };
     pendingCravingRef.current = null;
     pendingAnaRef.current = null;
+    trioDoneRef.current = false;
     cravingRef.current = null;
     nearMissAtRef.current = 0;
     lastTickSecRef.current = null;
@@ -383,7 +385,7 @@ export default function App() {
 
       // Ista tvrdnja se kači i na Filipa i na Matiju (isti objekat), pa klik
       // na Filipa zna da li je BAŠ ON slagao. Bez toga bi se svaki klik na
-      // Filipa brojao kao "preveslao te", pa bi zbir ishoda premašio broj laži.
+      // Filipa brojao kao "zeznuo te", pa bi zbir ishoda premašio broj laži.
       const filip = {
         ...createEntity('filip', {
           existing: alive,
@@ -412,7 +414,7 @@ export default function App() {
       else runRef.current.filipLies += 1;
 
       // Kad laže, na strani na koju te uputio mora nešto STAJATI — inače je
-      // tamo prazno polje, nemaš šta kliknuti, i "preveslao te je" se
+      // tamo prazno polje, nemaš šta kliknuti, i "zeznuo te" se
       // praktično ne može ni desiti. Zato tamo iskoči vino: poslušati ga
       // tada znači konkretnu kaznu, a ne samo promašen tap u prazno.
       if (!truth && wineInPlay) {
@@ -568,6 +570,46 @@ export default function App() {
           alive = [...alive, createEntity('ana', { existing: alive, now, lifetime: pace.lifetime })];
         }
 
+        // Zajednički nastup: Matija, Filip i Ana u isto vrijeme.
+        // Ide mimo redovnog spawna i mimo ograničenja broja elemenata —
+        // to je zakazan trenutak, a ne slučajnost.
+        // Čeka se da se polje malo isprazni, da tri nova lika ne padnu preko
+        // pune scene — ali ne duže od 3 s, da trenutak ne propadne.
+        const roomForTrio =
+          alive.filter((e) => !e.dying && !e.expiring).length <= 3 ||
+          elapsed >= (op.trio?.at ?? 0) + 3;
+
+        if (
+          op.trio &&
+          !trioDoneRef.current &&
+          elapsed >= op.trio.at &&
+          roomForTrio &&
+          stage.elements.includes('ana')
+        ) {
+          trioDoneRef.current = true;
+
+          const life = op.trio.lifetime;
+          // Matija lijevo, Ana desno — suprotne polovine, da se ne pomiješaju
+          // u trenutku kad je pogrešan klik najskuplji.
+          const trioMatija = createEntity('matija', { existing: alive, now, lifetime: life, side: 'lijevo' });
+          const trioAna = createEntity('ana', {
+            existing: [...alive, trioMatija],
+            now,
+            lifetime: life,
+            side: 'desno',
+          });
+          const trioFilip = createEntity('filip', {
+            existing: [...alive, trioMatija, trioAna],
+            now,
+            lifetime: life,
+            line: { kind: 'sala', text: op.trio.filipLine },
+          });
+
+          alive = [...alive, trioMatija, trioAna, trioFilip];
+          playSound('filip');
+          showBanner(op.trio.banner, 'bad', 1600);
+        }
+
         return alive;
       });
 
@@ -612,7 +654,7 @@ export default function App() {
   }, []);
 
   /**
-   * "Preveslao te je" se broji samo ako postoji dokaz da si ga POSLUŠALA:
+   * "Zeznuo te" se broji samo ako postoji dokaz da si ga POSLUŠALA:
    * odigrala si na strani na koju te je poslao, a on je lagao.
    * Ignorisati Filipa nije isto što i nasjesti mu, pa se puko isticanje
    * njegovog Matije namjerno NE broji.
@@ -637,7 +679,7 @@ export default function App() {
       if (screen !== 'playing' || endingRef.current || entity.dying || entity.expiring) return;
 
       // Klik na bilo šta drugo na strani na koju te je Filip poslao.
-      // Vraća true ako je OVAJ klik već ušao u "preveslao te", da se isti
+      // Vraća true ako je OVAJ klik već ušao u "zeznuo te", da se isti
       // potez ne bi izbrojao dvaput (npr. klik na Filipa koji stoji na
       // strani na koju je drugi Filip lažno uputio).
       const countedBySide = noteFooledIfFollowed(entity.x, entity.id);
@@ -724,7 +766,7 @@ export default function App() {
           showFloat(
             x,
             y,
-            entity.decoyClaim ? `FILIP TE PREVESLAO! ${SCORES.vino}` : `AAA NE NE! ${SCORES.vino}`,
+            entity.decoyClaim ? `FILIP TE ZEZNUO! ${SCORES.vino}` : `AAA NE NE! ${SCORES.vino}`,
             'bad'
           );
           breakCombo();
@@ -743,7 +785,7 @@ export default function App() {
             runRef.current.filipFooled += 1;
           }
 
-          showFloat(x, y, `PREVESLAO TE! ${SCORES.filipKlik}`, 'bad');
+          showFloat(x, y, `ZEZNUO TE! ${SCORES.filipKlik}`, 'bad');
           breakCombo();
           break;
         }

@@ -148,10 +148,13 @@ export const COMBO_STEPS = [
     { hits: 2, text: 'MATIJA SE ZAPITAO ŠTA JE SKRIVIO' },
     { hits: 4, text: 'OVO JE VEĆ LIČNO!' },
     { hits: 6, text: 'MATIJA ĆE SAD DA SE POPRAVI' },
-    { hits: 8, text: 'NEKO DA POZOVE POMOĆ?!' },
-    { hits: 10, text: 'MATIJA JE POČEO DA SE PITA DA LI JE OVO BRAK' },
-    { hits: 12, text: 'MATIJA, BJEŽI DOK JOŠ MOŽEŠ!!!' },
-    { hits: 14, text: 'NEE PO GLAVI ŽENOO!!!' },
+    { hits: 8, text: 'MATIJA JE POČEO DA SE PITA DA LI JE OVO BRAK' },
+    { hits: 10, text: 'MATIJA, BJEŽI DOK JOŠ MOŽEŠ!!!' },
+    { hits: 12, text: 'NEE PO GLAVI ŽENOO!!!' },
+    { hits: 14, text: 'MATIJA TRAŽI DA TE NEKO ZAUSTAVI!' },
+    { hits: 16, text: 'NEKO DA POZOVE POMOĆ?!' },
+    { hits: 18, text: 'MATIJA, RECI NEŠTO!!!' },
+    { hits: 20, text: 'MATIJA ZOVE ADVOKATA' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -261,7 +264,7 @@ export const OPERATIONS = [{
         filipTruthChance: 0.5, // pola-pola: odluka mora biti stvarna
         // Prva tvrdnja u ovoj operaciji je UVIJEK laž. Tutorial je upravo
         // naučio da slušanje nosi +3, pa igrač skoro sigurno nasjedne bar
-        // jednom — bez toga statistika "preveslao te" ostaje prazna.
+        // jednom — bez toga statistika "zeznuo te" ostaje prazna.
         firstClaimLies: true,
         // Koliko često Filip daje TVRDNJU o smjeru umjesto puke šale.
         // Operacija je o odluci da li mu vjerovati, pa šale ovdje samo razblažuju.
@@ -290,6 +293,16 @@ export const OPERATIONS = [{
         filipTruthChance: 0.55,
         filipClaimChance: 0.5, // u haosu je pola šale, pola stvarnih tvrdnji
         hasCountdown: true,
+
+        // Zakazani trenutak u završnoj operaciji: Matija, Filip i Ana
+        // izlaze ZAJEDNO. Nasumično se to praktično nikad ne bi poklopilo,
+        // pa se izvodi namjerno — Matija lijevo, Ana desno, Filip između.
+        trio: {
+            at: 22, // sekunda operacije (faza 3 traje 20–30 s)
+            banner: 'SVI SU TU!',
+            filipLine: 'Sad je ozbiljno.',
+            lifetime: 2400, // duže od ostalih — trenutak mora da se vidi
+        },
         // Tri faze: kontrola → haos počinje → puni haos.
         phases: [{
                 until: 10,
@@ -356,7 +369,7 @@ export const FILIP_ANA_LINES = [
 // ---------------------------------------------------------------------------
 
 export const FINAL_RESULTS = [{
-        min: 121,
+        min: 125,
         title: 'GLAVNA SI U PORODICI. 👑',
         lines: [
             'Matija je naučio ko je glavni.',
@@ -371,7 +384,7 @@ export const FINAL_RESULTS = [{
         title: 'ZVANIČNA SNAJKA. ❤️',
         lines: [
             'Matija je dobio svoje.',
-            'Filip nije uspio da te prevesla.',
+            'Filip je pokušao. Nije prošlo.',
             'Ana je našla saveznicu.',
         ],
         closing: 'Možeš među nas. 😌',
@@ -381,7 +394,7 @@ export const FINAL_RESULTS = [{
         title: 'OVO VEĆ LIČI NA NEŠTO. 😏',
         lines: [
             'Matija je stradao.',
-            'Filip nije uspio da te prevesla.',
+            'Filip već smišlja novi plan.',
             'S Anom si se dobro snašla.',
         ],
         closing: 'Počinješ da hvataš kako stvari ovdje funkcionišu.',

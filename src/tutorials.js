@@ -88,7 +88,7 @@ export const TUTORIALS = {
         },
         {
             // Kad laže, tamo gdje te uputi čeka VINO. Zato ovaj korak mora
-            // pokazati i to — inače igrač nikad ne poveže "preveslao te je"
+            // pokazati i to — inače igrač nikad ne poveže "zeznuo te"
             // sa Filipovim savjetom.
             prompt: 'A SAD PAZI — NE SLUŠAJ GA, NAĐI MATIJU',
             note: { text: 'OVAJ PUT SE ŠALIO', tone: 'bad' },
@@ -101,7 +101,7 @@ export const TUTORIALS = {
             reward: 'FILIP JE POKUŠAO DA TE ZBUNI, NIJE MU USPJELO! +1',
             reject: {
                 f: 'USPIO JE DA TE ZBUNI. −2',
-                v: 'DESNO JE ČEKALO VINO. TAKO TE PREVESLA. −3',
+                v: 'DESNO JE ČEKALO VINO. TAKO TE ZEZNE. −3',
             },
             after: 'Kad laže, tamo gdje te pošalje čeka vino. Kad ne laže — čeka Matija.',
         },

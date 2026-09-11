@@ -51,11 +51,11 @@ export default function OperationResult({ operation, run, score, isLast, onNext 
           )}
           {operation.hasCravings && <Stat label="Želje pogođene" value={`${run.cravingsHit}×`} />}
           {/* Namjerno se NE prikazuje koliko je puta lagao a koliko bio iskren:
-              "preveslao te" uključuje i klik na njega samog (i njegove šale),
+              "zeznuo te" uključuje i klik na njega samog (i njegove šale),
               pa te dvije brojke nisu u odnosu koji se smije sabirati. Ovdje
               stoji samo ono što je igrač uradio. */}
           {operation.id === 4 && <Stat label="Provalila si ga" value={`${run.filipCaught}×`} />}
-          {operation.id === 4 && <Stat label="Preveslao te" value={`${run.filipFooled}×`} />}
+          {operation.id === 4 && <Stat label="Zeznuo te" value={`${run.filipFooled}×`} />}
           {operation.id === 4 && run.filipTrusted > 0 && (
             <Stat label="Poslušala ga s razlogom" value={`${run.filipTrusted}×`} />
           )}

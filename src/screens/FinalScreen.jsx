@@ -108,7 +108,7 @@ export default function FinalScreen({ score, stats, anaAvoided, onReplay }) {
           <StatRow label="Nićko pomažen" value={`${stats.nicko}×`} />
           <StatRow label="Želje pogođene" value={`${stats.cravingsHit}×`} />
           <StatRow label="Vino dotaknuto" value={`${stats.vino}×`} />
-          <StatRow label="Filip te preveslao" value={`${stats.filipFooled}×`} />
+          <StatRow label="Filip te zeznuo" value={`${stats.filipFooled}×`} />
           <StatRow label="Provalila si Filipa" value={`${stats.filipCaught}×`} />
           <StatRow label="OK si sa Anom" value={anaAvoided ? 'DA' : 'NE'} />
         </div>
