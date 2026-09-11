@@ -26,6 +26,11 @@ export const MATIJA_IMAGES = assets([
     '/images/matija/matija-9.jpg',
     '/images/matija/matija-10.jpg',
     '/images/matija/matija-11.jpg',
+    '/images/matija/matija-12.jpg',
+    '/images/matija/matija-13.jpg',
+    '/images/matija/matija-14.jpg',
+    '/images/matija/matija-15.jpg',
+    '/images/matija/matija-16.jpg',
 ]);
 export const FILIP_IMAGES = assets([
     '/images/filip/filip-1.jpg',
@@ -35,6 +40,7 @@ export const FILIP_IMAGES = assets([
     '/images/filip/filip-5.jpg',
     '/images/filip/filip-6.jpg',
     '/images/filip/filip-7.jpg',
+    '/images/filip/filip-8.jpg',
 ]);
 export const ANA_IMAGES = assets([
     '/images/ana/ana-1.jpg',
@@ -43,8 +49,17 @@ export const ANA_IMAGES = assets([
     '/images/ana/ana-4.jpg',
     '/images/ana/ana-5.jpg',
     '/images/ana/ana-6.jpg',
+    '/images/ana/ana-7.jpg',
 ]);
-export const NICKO_IMAGES = assets(['/images/maltezer/maltezer-1.jpg', '/images/maltezer/maltezer-2.jpg']);
+export const NICKO_IMAGES = assets([
+    '/images/nicko/nicko-1.jpg',
+    '/images/nicko/nicko-2.jpg',
+    '/images/nicko/nicko-3.jpg',
+    '/images/nicko/nicko-4.jpg',
+    '/images/nicko/nicko-5.jpg',
+    '/images/nicko/nicko-6.jpg',
+    '/images/nicko/nicko-7.jpg',
+]);
 export const VINO_IMAGES = assets(['/images/vino/vino-1.jpg']);
 
 export const FOODS = [
@@ -202,7 +217,7 @@ export const OPERATIONS = [{
         weights: { matija: 74, nicko: 12, hrana: 14 },
         pacing: { interval: [1150, 620], lifetime: [1700, 1150], maxOnScreen: [3, 5] },
         hasCombo: true,
-        tutorial: 'udri',
+        tutorial: null, // jasno je i bez demonstracije — samo se udara
         resultTitle: 'OPERACIJA ZAVRŠENA',
     },
     {

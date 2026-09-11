@@ -38,26 +38,6 @@ export const TUTORIALS = {
         },
     ],
 
-    udri: [{
-            prompt: 'UDRI GA!',
-            items: [{ key: 'm', type: 'matija', x: 34, y: 46, highlight: true }],
-            accept: 'm',
-            reward: 'BONK! +1',
-        },
-        {
-            prompt: 'PONOVO!',
-            items: [{ key: 'm', type: 'matija', x: 68, y: 58 }],
-            accept: 'm',
-            reward: 'BONK! +1',
-        },
-        {
-            prompt: 'BRŽE. 😈',
-            items: [{ key: 'm', type: 'matija', x: 44, y: 68 }],
-            accept: 'm',
-            reward: 'BONK! +1',
-        },
-    ],
-
     zelje: [{
             craving: 'pizza',
             prompt: 'PRONAĐI JE',
