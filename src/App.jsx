@@ -713,10 +713,17 @@ export default function App() {
               runRef.current.filipTrusted += 1;
               showFloat(x, y, `OVAJ PUT TI JE POMOGAO! +${SCORES.matija + SCORES.filipPovjerenje}`, 'great');
             } else {
-              // Lagao je, ali si ga svejedno našla.
+              // Lagao je, ali si ga svejedno našla — najteži potez u igri,
+              // pa nosi i poseban bonus.
+              addScore(SCORES.filipProvala);
               statsRef.current.filipCaught += 1;
               runRef.current.filipCaught += 1;
-              showFloat(x, y, `BRAVO! PROVALILA SI GA! +${SCORES.matija}`, 'good');
+              showFloat(
+                x,
+                y,
+                `BRAVO! PROVALILA SI GA! +${SCORES.matija + SCORES.filipProvala}`,
+                'great'
+              );
             }
           } else {
             showFloat(x, y, `BONK! +${SCORES.matija}`, 'good');

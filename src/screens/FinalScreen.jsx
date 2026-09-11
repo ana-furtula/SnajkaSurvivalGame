@@ -4,9 +4,22 @@ import { FINAL_RESULTS, FINAL_WELCOME } from '../config.js';
 import { playSound } from '../audio.js';
 import { GhostButton, PrimaryButton, StarRule, Sticker } from '../components/ui.jsx';
 
-/** Završna poruka po ukupnom skoru — pragovi su u config.js. */
-export function getFinalResult(score) {
-  return FINAL_RESULTS.find((r) => score >= r.min) ?? FINAL_RESULTS[FINAL_RESULTS.length - 1];
+/** Partija je "čista" ako nijedno vino nije dotaknuto i Filip te nijednom nije zeznuo. */
+export function isCleanRun(stats) {
+  return (stats?.vino ?? 0) === 0 && (stats?.filipFooled ?? 0) === 0;
+}
+
+/**
+ * Završna poruka po ukupnom skoru — pragovi su u config.js.
+ * Titule označene sa `clean: true` traže i čistu partiju: bez toga
+ * igrač pada na sljedeću nižu, ma koliki skor imao.
+ */
+export function getFinalResult(score, stats) {
+  const clean = isCleanRun(stats);
+  return (
+    FINAL_RESULTS.find((r) => score >= r.min && (!r.clean || clean)) ??
+    FINAL_RESULTS[FINAL_RESULTS.length - 1]
+  );
 }
 
 function StatRow({ label, value }) {
@@ -24,7 +37,12 @@ export default function FinalScreen({ score, stats, anaAvoided, onReplay }) {
   const cardRef = useRef(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
-  const result = getFinalResult(score);
+  const result = getFinalResult(score, stats);
+
+  // Skor je bio dovoljan za krunu, ali partija nije bila čista — reci zašto,
+  // inače izgleda kao da igra pogrešno računa.
+  const crown = FINAL_RESULTS.find((r) => r.clean);
+  const missedCrown = crown && score >= crown.min && !isCleanRun(stats);
 
   useEffect(() => {
     const shoot = (particleCount, spread, originY) =>
@@ -93,6 +111,14 @@ export default function FinalScreen({ score, stats, anaAvoided, onReplay }) {
 
         <p className="font-pop text-lg uppercase leading-tight text-purple">{result.closing}</p>
 
+        {missedCrown && (
+          <p className="w-full rounded-xl border-[3px] border-ink bg-red px-3 py-2 font-ui text-[11px] font-black uppercase leading-snug tracking-wide text-cream">
+            Bodovi su bili za krunu — ali kruna traži čistu partiju.
+            {stats.vino > 0 && ` Vino: ${stats.vino}×.`}
+            {stats.filipFooled > 0 && ` Filip te zeznuo: ${stats.filipFooled}×.`}
+          </p>
+        )}
+
         {/* Veliki finalni skor */}
         <div className="my-1 w-full rounded-xl border-[3px] border-purple bg-night py-3 shadow-sticker">
           <div className="font-ui text-[10px] font-black uppercase tracking-[0.22em] text-cream/60">
@@ -104,7 +130,7 @@ export default function FinalScreen({ score, stats, anaAvoided, onReplay }) {
         </div>
 
         <div className="w-full text-left">
-          <StatRow label="Matija udaran" value={`${stats.bonks}×`} />
+          <StatRow label="Matija udaren" value={`${stats.bonks}×`} />
           <StatRow label="Nićko pomažen" value={`${stats.nicko}×`} />
           <StatRow label="Želje pogođene" value={`${stats.cravingsHit}×`} />
           <StatRow label="Vino dotaknuto" value={`${stats.vino}×`} />

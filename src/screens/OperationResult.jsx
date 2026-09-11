@@ -45,7 +45,7 @@ export default function OperationResult({ operation, run, score, isLast, onNext 
         </div>
 
         <div className="mt-3">
-          {operation.id === 2 && <Stat label="Matija udaran" value={`${run.bonks}×`} />}
+          {operation.id === 2 && <Stat label="Matija udaren" value={`${run.bonks}×`} />}
           {operation.id === 2 && run.bestCombo > 1 && (
             <Stat label="Najduži niz" value={`${run.bestCombo}×`} />
           )}

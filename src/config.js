@@ -135,12 +135,15 @@ export const SCORES = {
     matija: 1,
     nicko: 2,
     hrana: 2, // hrana dok nema aktivne želje (operacija 01)
-    hranaZelja: 3, // pogođena trenutna želja
+    hranaZelja: 5, // pogođena trenutna želja — traži pažnju, pa i plaća više
     hranaPogresna: -2, // pogrešna hrana dok je želja aktivna
     vino: -3,
     filipKlik: -2, // klik na samog Filipa
     filipPovjerenje: 2, // bonus ako je Filip rekao istinu i poslušala si ga
-    comboBonus: 2, // dodatno na svaki prag combo-a
+    filipProvala: 3, // bonus kad slaže a ti ga svejedno provališ — najteži potez u igri
+    // Combo je namjerno sitan po pragu: ima ih deset, pa bi veći iznos
+    // učinio da operacija 2 (čisto tapkanje) nosi skoro pola cijele igre.
+    comboBonus: 1,
 };
 
 // Pragovi za combo u operaciji 02 (uzastopni pogoci Matije).
@@ -365,8 +368,13 @@ export const FILIP_ANA_LINES = [
 //  7) ZAVRŠNI REZULTAT — pragovi po ukupnom skoru
 // ---------------------------------------------------------------------------
 
+// Titule se biraju po ukupnom skoru. Najviša ima i dodatni uslov:
+// `clean: true` znači da traži i čistu partiju — nijedno vino dotaknuto
+// i nijednom te Filip nije zeznuo. Cijela igra je o disciplini, pa neka
+// i kruna bude o njoj, a ne samo o broju tapova.
 export const FINAL_RESULTS = [{
-        min: 130,
+        min: 140,
+        clean: true,
         title: 'GLAVNA SI U PORODICI 👑',
         lines: [
             'Matija je naučio ko je glavni.',
@@ -377,7 +385,7 @@ export const FINAL_RESULTS = [{
         closing: 'Dobrodošla. Samo polako s nama. ❤️',
     },
     {
-        min: 101,
+        min: 115,
         title: 'ZVANIČNA SNAJKA',
         lines: [
             'Matija je dobio svoje.',
@@ -387,7 +395,7 @@ export const FINAL_RESULTS = [{
         closing: 'Možeš među nas. 😌',
     },
     {
-        min: 61,
+        min: 80,
         title: 'OVO VEĆ LIČI NA NEŠTO 😏',
         lines: [
             'Matija je stradao.',
@@ -397,7 +405,7 @@ export const FINAL_RESULTS = [{
         closing: 'Počinješ da hvataš kako stvari ovdje funkcionišu.',
     },
     {
-        min: 31,
+        min: 45,
         title: 'SOLIDNO 😌',
         lines: [
             'Nisi pokidala, ali nisi ni zalutala.',
