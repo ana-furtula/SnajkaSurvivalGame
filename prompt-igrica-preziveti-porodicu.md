@@ -63,7 +63,7 @@ Definiši nivoe kao niz objekata konfiguracije (koji elementi su aktivni, brzina
 
 ```js
 const LEVELS = [
-  { id: 1, name: "Upoznaj materijal", duration: 15, elements: ['matija', 'maltezer', 'hrana'], spawnRate: 1200 },
+  { id: 1, name: "Zagrijavanje", duration: 15, elements: ['matija', 'maltezer', 'hrana'], spawnRate: 1200 },
   { id: 2, name: "Trudničke želje", duration: 15, elements: ['matija', 'maltezer', 'hrana'], hasCravings: true, spawnRate: 1100 },
   { id: 3, name: "Gdje je Matija?", duration: 18, elements: ['matija', 'maltezer', 'hrana'], targetBonks: 15, spawnRate: 900 },
   { id: 4, name: "Vino iskušenja", duration: 18, elements: ['matija', 'maltezer', 'hrana', 'vino'], spawnRate: 850 },

@@ -33,7 +33,7 @@ Refresh stranice resetuje sve: operacija 1, rezultat 0, svi brojači na nuli.
 
 | # | Operacija | Trajanje | Šta se uvodi |
 |---|---|---|---|
-| 01 | UPOZNAJ MATERIJAL | 20 s | Matija, Nićko, hrana |
+| 01 | ZAGRIJAVANJE | 20 s | Matija, Nićko, hrana |
 | 02 | UDRI MATIJU! | 25 s | tempo + combo |
 | 03 | TRUDNIČKE ŽELJE | 25 s | trenutna želja |
 | 04 | DA LI FILIP LAŽE? | 28 s | Filipovi savjeti + vino |

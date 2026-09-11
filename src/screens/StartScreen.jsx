@@ -7,7 +7,7 @@ export default function StartScreen({ onStart }) {
       {/* Naljepnice oko logotipa — namjerno nakrivo. */}
       <div className="flex items-center gap-2">
         <Sticker tone="pink" rotate={-6}>
-          Porodični haos
+          Praktični dio
         </Sticker>
         <Sticker tone="blue" rotate={5}>
           5 levela
@@ -25,11 +25,11 @@ export default function StartScreen({ onStart }) {
       <StarRule />
 
       <p className="hard-shadow font-pop text-xl uppercase leading-tight text-yellow">
-        Dobrodošla među nas.
+        Dobro došla među nas.
       </p>
 
       <p className="max-w-xs font-ui text-sm font-medium leading-relaxed text-cream/80">
-        Sad da vidimo koliko si spremna.
+        Papire ćeš potpisati lako. Ovo je teži dio.
       </p>
 
       <div className="mt-1 w-full max-w-xs">
@@ -39,7 +39,7 @@ export default function StartScreen({ onStart }) {
       </div>
 
       <div className="animate-blink font-ui text-[11px] font-black uppercase tracking-[0.18em] text-cream/70">
-        {OPERATIONS.length} operacija • 2–3 minuta • 1 porodica
+        {OPERATIONS.length} operacija • 3 minuta • povratka nema
       </div>
     </Sheet>
   );

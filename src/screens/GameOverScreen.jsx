@@ -28,16 +28,20 @@ export default function GameOverScreen({ operation, score, onRestart }) {
         <p className="font-ui text-sm font-medium leading-snug text-cream/85">
           Od svih ljudi u ovoj porodici — ti si našla Anu da diraš.
         </p>
-        <p className="font-ui text-sm font-medium leading-snug text-cream/70">Pričaćemo...</p>
+        <p className="font-ui text-sm font-medium leading-snug text-cream/70">
+          Matija te branio. Kratko. Pričaćemo…
+        </p>
       </div>
 
-      <div className="relative w-full max-w-xs rounded-2xl border-[3px] border-cyan bg-night px-4 py-3 shadow-sticker-lg">
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+      {/* Naljepnica je u toku sadržaja, ne `absolute` preko panela — inače
+          na užem telefonu sjedne tačno preko brojke rezultata. */}
+      <div className="w-full max-w-xs rounded-2xl border-[3px] border-cyan bg-night px-4 pb-3 pt-3 shadow-sticker-lg">
+        <div className="flex justify-center">
           <Sticker tone="red" rotate={3}>
             Rezultat
           </Sticker>
         </div>
-        <div className="pt-2 text-center">
+        <div className="mt-3 text-center">
           <div className="outline-text font-display text-5xl leading-none tabular-nums text-cyan">
             {score}
           </div>

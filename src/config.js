@@ -135,7 +135,11 @@ export const SCORES = {
     matija: 1,
     nicko: 2,
     hrana: 2, // hrana dok nema aktivne želje (operacija 01)
-    hranaZelja: 5, // pogođena trenutna želja — traži pažnju, pa i plaća više
+    // Pogođena trenutna želja. Namjerno NIJE velika: igra garantuje da se
+    // tražena hrana pojavi u svakom prozoru želje (i drži je duže na ekranu),
+    // pa ih po partiji padne oko 13. Na +5 je to bilo 65 bodova — preko
+    // trećine cijele igre za nešto što ti igra sama donese pred prst.
+    hranaZelja: 3,
     hranaPogresna: -2, // pogrešna hrana dok je želja aktivna
     vino: -3,
     filipKlik: -2, // klik na samog Filipa
@@ -151,13 +155,13 @@ export const COMBO_STEPS = [
     { hits: 2, text: 'MATIJA SE ZAPITAO ŠTA JE SKRIVIO' },
     { hits: 4, text: 'OVO JE VEĆ LIČNO!' },
     { hits: 6, text: 'MATIJA ĆE SAD DA SE POPRAVI' },
-    { hits: 8, text: 'MATIJA JE POČEO DA SE PITA DA LI JE OVO BRAK' },
+    { hits: 8, text: 'MATIJA JE POČEO DA SE PITA DA LI JE OVO NORMALNO' },
     { hits: 10, text: 'MATIJA, BJEŽI DOK JOŠ MOŽEŠ!!!' },
     { hits: 12, text: 'NEE PO GLAVI ŽENOO!!!' },
     { hits: 14, text: 'MATIJA TRAŽI DA TE NEKO ZAUSTAVI!' },
-    { hits: 16, text: 'NEKO DA POZOVE POMOĆ?!' },
-    { hits: 18, text: 'MATIJA, RECI NEŠTO!!!' },
-    { hits: 20, text: 'MATIJA ZOVE ADVOKATA' },
+    { hits: 16, text: 'NEKO DA ZAUSTAVI OVU ŽENU?!' },
+    { hits: 18, text: 'MATIJA JE POČEO DA PREGOVARA!' },
+    { hits: 20, text: 'MATIJA ZOVE MAMU!!!' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -190,23 +194,23 @@ export const TUNING = {
 export const OPERATIONS = [{
         id: 1,
         code: '01',
-        name: 'UPOZNAJ MATERIJAL',
+        name: 'ZAGRIJAVANJE',
         duration: 10,
         intro: [
-            'Za početak ništa komplikovano.',
-            '👨 Matija — udari ga.',
-            '🐶 Nićko — pomazi ga.',
-            '🍕 Hrana — uzmi je.',
+            'Prvo upoznavanje. Ništa strašno.',
+            '👨 Matija — udari ga. Navikao je.',
+            '🐶 Nićko — pomazi ga. Njega uvijek smiješ.',
+            '🍕 Hrana — uzmi je. Zaslužila si.',
         ],
         elements: ['matija', 'nicko', 'hrana'],
         weights: { matija: 50, nicko: 22, hrana: 28 },
         pacing: { interval: [1500, 1000], lifetime: [2100, 1600], maxOnScreen: [2, 4] },
         tutorial: 'osnove',
-        resultTitle: 'OPERACIJA ZAVRŠENA',
+        resultTitle: 'PRIJEM POLOŽEN',
         resultText: [
-            'Odlično.',
-            'Već imaš tehniku.',
-            'Matija počinje da shvata ko se pita.',
+            'Tehniku imaš. To nas pomalo brine.',
+            'Matija je već počeo da razmišlja o svom ponašanju.',
+            'Nićko je od ovoga napravio ličnu korist.',
         ],
     },
     {
@@ -215,8 +219,10 @@ export const OPERATIONS = [{
         name: 'UDRI MATIJU!',
         duration: 25,
         intro: [
-            'Imaš 25 sekundi.',
-            'Što više puta ga udariš — više bodova.',
+            'Dvadeset pet sekundi. Bez pitanja.',
+            'Svaki udarac se broji, a niz donosi još.',
+            'Ovdje nema pogrešne hrane — uzimaj sve što vidiš.',
+            'Nićka i dalje smiješ. Nićka uvijek smiješ.',
             'Ne razmišljaj. Samo udaraj. 😈',
         ],
         elements: ['matija', 'nicko', 'hrana'],
@@ -224,7 +230,7 @@ export const OPERATIONS = [{
         pacing: { interval: [1150, 620], lifetime: [1700, 1150], maxOnScreen: [3, 5] },
         hasCombo: true,
         tutorial: null, // jasno je i bez demonstracije — samo se udara
-        resultTitle: 'OPERACIJA ZAVRŠENA',
+        resultTitle: 'MATIJA JE DOBIO SVOJE',
     },
     {
         id: 3,
@@ -232,10 +238,12 @@ export const OPERATIONS = [{
         name: 'TRUDNIČKE ŽELJE',
         duration: 25,
         intro: [
-            'Stanje se mijenja.',
-            'Trenutno postoji samo jedna ispravna želja.',
-            'Prati šta se traži i reaguj brzo.',
-            'Pogrešna hrana negativno utiče.',
+            'Od sada ne naručuješ ti.',
+            'Aleksej traži jednu stvar i ne prihvata zamjenu.',
+            'Traka gore kaže šta se traži. Prati je.',
+            'Pogrešna hrana ide na tvoj račun.',
+            'Kad ne znaš šta ćeš - udari Matiju.',
+            'Nićko je izvan svega ovoga. Njega i dalje smiješ da maziš.',
         ],
         elements: ['matija', 'nicko', 'hrana'],
         weights: { matija: 26, nicko: 10, hrana: 64 },
@@ -243,23 +251,22 @@ export const OPERATIONS = [{
         hasCravings: true,
         cravingEvery: 5500,
         tutorial: 'zelje',
-        resultTitle: 'OPERACIJA ZAVRŠENA',
+        resultTitle: 'ALEKSEJ JE ZADOVOLJAN',
         resultText: [
-            'Odlično.',
-            'Želje su ispunjene.',
-            'Aleksej je sit. Kuća je mirna.',
+            'Želje ispunjene, red uspostavljen.',
         ],
     },
     {
         id: 4,
         code: '04',
-        name: 'FILIP SE OPET ŠALI. ILI IPAK NE?',
+        name: 'FILIPOVA FORA',
         duration: 28,
         intro: [
-            'Filip će ti davati savjete.',
-            'Nekad će biti u pravu. Nekad neće.',
-            'Ti odlučuješ da li mu vjeruješ.',
-            'Srećno.',
+            'Filip je stigao i ima savjete.',
+            'Kaže da mu vjeruješ. Na tebi je da procijeniš.',
+            'Poslušaš ga, a bio je u pravu — dobro si prošla.',
+            'Poslušaš ga, a slagao te — naivno.',
+            'Srećno. Trebaće ti.',
         ],
         elements: ['matija', 'filip', 'vino'],
         weights: { matija: 42, filip: 34, vino: 24 },
@@ -273,7 +280,7 @@ export const OPERATIONS = [{
         // Operacija je o odluci da li mu vjerovati, pa šale ovdje samo razblažuju.
         filipClaimChance: 0.75,
         tutorial: 'filip',
-        resultTitle: 'OPERACIJA ZAVRŠENA',
+        resultTitle: 'FILIP JE DAO SVE OD SEBE',
     },
     {
         id: 5,
@@ -281,13 +288,13 @@ export const OPERATIONS = [{
         name: 'PORODIČNI HAOS',
         duration: 30,
         intro: [
-            'Sada znaš sva pravila.',
+            'Sad ide sve odjednom.',
             '👨 Matija — UDARI',
-            '🐶 Nićko — POMAZI',
-            '🍕 Hrana — POGODI ŽELJU',
-            '🍷 Vino — NE SMIJEŠ',
-            '👨‍🦱 Filip — ŠALI SE, ILI IPAK NE',
-            '👩 Ana — NE DIRAJ JE',
+            '🐶 Nićko — POMAZI, UVIJEK',
+            '🍕 Hrana — SAMO ONO ŠTO ALEKSEJ TRAŽI',
+            '🍷 Vino — NE. DEVET MJESECI NE.',
+            '👨‍🦱 Filip — POLA ISTINE, POLA FILIPA',
+            '👩 Ana — NJU NE DIRAŠ. NIKAD.',
         ],
         // warning: 'Ako klikneš Anu — GAME OVER.',
         startLabel: 'POKRENI ZAVRŠNU OPERACIJU',
@@ -303,7 +310,7 @@ export const OPERATIONS = [{
         trio: {
             at: 22, // sekunda operacije (faza 3 traje 20–30 s)
             banner: 'SVI SU TU!',
-            filipLine: 'Sad je ozbiljno.',
+            filipLine: 'Eto, skupila se familija.',
             lifetime: 2400, // duže od ostalih — trenutak mora da se vidi
         },
         // Tri faze: kontrola → haos počinje → puni haos.
@@ -330,7 +337,7 @@ export const OPERATIONS = [{
             },
         ],
         tutorial: null, // sve mehanike su već demonstrirane
-        resultTitle: 'OPERACIJA ZAVRŠENA!',
+        resultTitle: 'PREŽIVJELA SI NAS!',
     },
 ];
 
@@ -346,21 +353,22 @@ export const OPERATIONS = [{
 // ---------------------------------------------------------------------------
 
 export const FILIP_LINES = [
+    { kind: 'smjer', side: 'desno', text: '👉 Matija je desno, kunem se. 👉' },
+    { kind: 'smjer', side: 'lijevo', text: '👈 Lijevo. Ja sam ga tamo i poslao. 👈' },
     { kind: 'sala', text: 'Ne znam šta radim ovdje.' },
-    { kind: 'smjer', side: 'lijevo', text: 'Matija je lijevo, vjeruj mi.' },
-    { kind: 'smjer', side: 'desno', text: 'Ja bih na tvom mjestu gledao desno.' },
     { kind: 'sala', text: 'Ne diraj Matiju, to je zamka.' },
     { kind: 'sala', text: 'Matija je iza tebe.' },
-    { kind: 'sala', text: 'Vjeruj mi.' },
-    { kind: 'smjer', side: 'desno', text: 'Matija je desno, kunem se.' },
-    { kind: 'sala', text: 'Klikni mene, znam šta radim.' },
+    { kind: 'sala', text: 'Vjeruj mi. Kad sam te ja slagao?' },
     { kind: 'sala', text: 'Klikni mene, imam plan.' },
+    { kind: 'sala', text: 'Opusti se, ovo je najlakši dio.' },
+    { kind: 'sala', text: 'Ja sam ovdje samo da pomognem.' },
 ];
 
 // Izjave o Ani — samo u završnoj operaciji, kad je Ana u igri.
 export const FILIP_ANA_LINES = [
     { kind: 'sala', text: 'SAD KLIKNI ANU, VJERUJ MI.' },
-    { kind: 'sala', text: 'Nema Ane.' },
+    { kind: 'sala', text: 'Nema Ane. Odavno je nema.' },
+    { kind: 'sala', text: 'Anu smiješ, danas je dobre volje.' },
     { kind: 'sala', text: 'Ana je desno, vjeruj mi.' },
 ];
 
@@ -369,66 +377,71 @@ export const FILIP_ANA_LINES = [
 // ---------------------------------------------------------------------------
 
 // Titule se biraju po ukupnom skoru. Najviša ima i dodatni uslov:
-// `clean: true` znači da traži i čistu partiju — nijedno vino dotaknuto
+// `clean: true` znači da traži i čistu partiju — nijedno vino
 // i nijednom te Filip nije zeznuo. Cijela igra je o disciplini, pa neka
 // i kruna bude o njoj, a ne samo o broju tapova.
+//
+// Pragovi su izmjereni, a ne pogođeni: savršena partija nosi oko 158 bodova,
+// pažljiv igrač oko 151, prosječan oko 100. Otud 155 / 130 / 105 / 75.
 export const FINAL_RESULTS = [{
-        min: 145,
+        min: 155,
         clean: true,
         title: 'GLAVNA SI U PORODICI 👑',
         lines: [
-            'Matija je naučio ko je glavni.',
-            'Filip će morati da smisli neke nove fore.',
-            'Ana je od sada na tvojoj strani.',
-            'Nićko je već bio na tvojoj strani.',
+            'Matija je naučio ko se pita. Trebalo mu je.',
+            'Aleksej je dobio sve što je tražio, i na vrijeme.',
+            'Filip je ostao bez fora. To se nije desilo nikad.',
+            'Ana je dobila pojačanje.',
+            'Nićko je bio uz tebe od prve sekunde. On je znao.',
         ],
-        closing: 'Dobrodošla. Samo polako s nama. ❤️',
+        closing: 'Dobro došla. Sad si i zvanično naš problem. ❤️',
     },
     {
-        min: 115,
+        min: 130,
         title: 'ZVANIČNA SNAJKA',
         lines: [
-            'Matija je dobio svoje.',
-            'Filip je pokušao. Nije prošlo.',
-            'Ana je našla saveznicu.',
+            'Matija je dobio svoje i još kaže hvala.',
+            'Filip je pokušao. Nije prošlo. Pokušaće opet.',
+            'Ana još uvijek ima partnerku za loše filmove.',
         ],
-        closing: 'Možeš među nas. 😌',
+        closing: 'Možeš među nas. Valjda znaš šta radiš.',
     },
     {
-        min: 80,
+        min: 105,
         title: 'OVO VEĆ LIČI NA NEŠTO 😏',
         lines: [
-            'Matija je stradao.',
-            'Filip već smišlja novi plan.',
-            'S Anom si se dobro snašla.',
+            'Matija je stradao...biće dobro...valjda.',
+            'Aleksej je bio strpljiv. Neće uvijek biti.',
+            'Filip je imao svojih pet minuta.',
+            'Ana nema primjedbi. Za sad...'
         ],
-        closing: 'Počinješ da hvataš kako stvari ovdje funkcionišu.',
+        closing: 'Počinješ da shvataš kako ovdje stvari funkcionišu.',
     },
     {
-        min: 45,
+        min: 75,
         title: 'SOLIDNO 😌',
         lines: [
-            'Nisi pokidala, ali nisi ni zalutala.',
-            'Matija je dobio svoje, a Filip još ima nade.',
+            'Nisi pokidala, ali nisi ni zvala nikoga u pomoć.',
+            'Matija je dobio svoje, a Filip će ovo prepričavati kao pobjedu.',
         ],
-        closing: 'Za prvi put — prolaziš.',
+        closing: 'Za prvi put — prolaziš. Uslovno.',
     },
     {
         min: -9999,
         title: 'DOBRO JE, TEK SI STIGLA',
         lines: [
-            'Neke stvari si pogodila.',
-            'Neke ćeš morati još malo da pohvataš.',
+            'Neke stvari si pohvatala.',
+            'Ostalo ćemo ti objasniti za stolom. Više puta.',
         ],
-        closing: 'Možeš ti to bolje realno.',
+        closing: 'Možeš ti to bolje. Znamo da možeš.',
     },
 ];
 
-export const FINAL_WELCOME = ['DOBRODOŠLA U PORODICU.', 'IZVINJAVAMO SE UNAPRIJED.'];
+export const FINAL_WELCOME = ['DOBRO DOŠLA U PORODICU.', 'IZVINJAVAMO SE UNAPRIJED.'];
 
 // Rezultat operacije 02 zavisi od broja udaraca.
 export const BONK_VERDICTS = [
-    { min: 22, text: 'MATIJA NE ZNA ŠTA GA JE SNAŠLO.' },
+    { min: 22, text: 'MATIJA VIŠE NE ZNA NI KAKO SE ZOVE.' },
     { min: 12, text: 'MATIJA JE DOBIO SVOJE. A TEK SI SE ZAGRIJALA.' },
     { min: -1, text: 'MATIJA SE IZVUKAO. OVOG PUTA.' },
 ];

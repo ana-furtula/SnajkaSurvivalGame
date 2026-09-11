@@ -260,7 +260,7 @@ export default function App() {
         hit: false,
       };
 
-      if (announce) showBanner(`Nova želja: ${next.emoji} ${next.name}`, 'info', 1400);
+      if (announce) showBanner(`Aleksej se predomislio: ${next.emoji} ${next.name}`, 'info', 1400);
     },
     [operation, showBanner]
   );
@@ -329,7 +329,7 @@ export default function App() {
     setHurt(true);
     clearTimers();
     showBanner('💥 KLIKNULA SI ANU', 'bad', 1600);
-    setTimeout(() => showBanner('UH-OH', 'bad', 1200), 800);
+    setTimeout(() => showBanner('E SAD JE GOTOVO', 'bad', 1200), 800);
     setTimeout(() => setScreen('gameover'), 1700);
   }, [clearTimers, showBanner]);
 
@@ -711,7 +711,7 @@ export default function App() {
               addScore(SCORES.filipPovjerenje);
               statsRef.current.filipTrusted += 1;
               runRef.current.filipTrusted += 1;
-              showFloat(x, y, `OVAJ PUT TI JE POMOGAO! +${SCORES.matija + SCORES.filipPovjerenje}`, 'great');
+              showFloat(x, y, `OVAJ PUT NIJE LAGAO! +${SCORES.matija + SCORES.filipPovjerenje}`, 'great');
             } else {
               // Lagao je, ali si ga svejedno našla — najteži potez u igri,
               // pa nosi i poseban bonus.
@@ -721,7 +721,7 @@ export default function App() {
               showFloat(
                 x,
                 y,
-                `BRAVO! PROVALILA SI GA! +${SCORES.matija + SCORES.filipProvala}`,
+                `PROVALILA SI GA! +${SCORES.matija + SCORES.filipProvala}`,
                 'great'
               );
             }
@@ -737,7 +737,7 @@ export default function App() {
           addScore(SCORES.nicko);
           statsRef.current.nicko += 1;
           playSound('nicko');
-          showFloat(x, y, `NIĆKO +${SCORES.nicko}`, 'great');
+          showFloat(x, y, `DOBAR PAS! +${SCORES.nicko}`, 'great');
           break;
 
         case 'hrana': {
@@ -753,7 +753,7 @@ export default function App() {
             } else {
               addScore(SCORES.hranaPogresna);
               playSound('hranaPogresna');
-              showFloat(x, y, `NEEE. ${SCORES.hranaPogresna}`, 'bad');
+              showFloat(x, y, `NE TO! ${SCORES.hranaPogresna}`, 'bad');
               breakCombo();
             }
           } else {
@@ -773,7 +773,7 @@ export default function App() {
           showFloat(
             x,
             y,
-            entity.decoyClaim ? `FILIP TE ZEZNUO! ${SCORES.vino}` : `AAA NE NE! ${SCORES.vino}`,
+            entity.decoyClaim ? `FILIPOVO DJELO! ${SCORES.vino}` : `NE SAD, NE DEVET MJESECI! ${SCORES.vino}`,
             'bad'
           );
           breakCombo();
@@ -792,7 +792,7 @@ export default function App() {
             runRef.current.filipFooled += 1;
           }
 
-          showFloat(x, y, `ZEZNUO TE! ${SCORES.filipKlik}`, 'bad');
+          showFloat(x, y, `PALA SI NA FILIPA! ${SCORES.filipKlik}`, 'bad');
           breakCombo();
           break;
         }
@@ -841,7 +841,7 @@ export default function App() {
 
       nearMissAtRef.current = now;
       playSound('nearMiss');
-      showFloat(px, py, 'UF. BLIZU.', 'soft');
+      showFloat(px, py, 'UF. ZA DLAKU.', 'soft');
 
       // Opasni element se kratko zatrese, pa se oznaka skida da animacija
       // ne ostane zalijepljena za element.
@@ -921,8 +921,6 @@ export default function App() {
   }
 
   const stageNow = stageAt(operation, operation.duration - timeLeft);
-  const anaInPlay = stageNow?.elements.includes('ana');
-  const wineInPlay = stageNow?.elements.includes('vino');
 
   return (
     <div className={`${shell} ${hurt ? 'animate-shake' : ''}`}>
@@ -936,8 +934,6 @@ export default function App() {
         cravingEvery={operation.cravingEvery ?? 5500}
         bonks={operation.id === 2 ? bonks : undefined}
         combo={operation.hasCombo ? combo : 0}
-        showAnaWarning={anaInPlay}
-        showWineNote={wineInPlay && operation.id === 4}
         penalty={penalty}
         muted={muted}
         onToggleMute={toggleMute}

@@ -107,7 +107,7 @@ export default function Tutorial({ kind, onDone }) {
     if (entity.id !== step.accept) {
       const reject = step.reject?.[entity.id];
       playSound(soundForClick(entity.type, true));
-      setFeedback({ text: reject ?? 'NE TO — probaj ponovo', tone: 'bad' });
+      setFeedback({ text: reject ?? 'NE TO. HAJDE OPET.', tone: 'bad' });
       setTimeout(() => setFeedback(null), 1100);
       return;
     }

@@ -27,15 +27,18 @@ export default function OperationResult({ operation, run, score, isLast, onNext 
         {operation.resultTitle ?? 'Operacija završena'}
       </h2>
 
-      {/* Veliki skor operacije */}
-      <div className="animate-popIn relative w-full max-w-xs rounded-2xl border-[3px] border-cyan bg-night px-4 py-3 shadow-sticker-lg">
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+      {/* Veliki skor operacije.
+          Naljepnica stoji U TOKU sadržaja, a ne kao `absolute` iznad panela:
+          na užim telefonima je preklapala samu brojku rezultata, pa se ono
+          zbog čega se ekran i otvara nije vidjelo. */}
+      <div className="animate-popIn w-full max-w-xs rounded-2xl border-[3px] border-cyan bg-night px-4 pb-3 pt-3 shadow-sticker-lg">
+        <div className="flex justify-center">
           <Sticker tone="pink" rotate={-4}>
             Rezultat operacije
           </Sticker>
         </div>
 
-        <div className="pt-2 text-center">
+        <div className="mt-3 text-center">
           <div className="outline-text font-display text-5xl leading-none tabular-nums text-yellow">
             {run.score >= 0 ? `+${run.score}` : run.score}
           </div>
@@ -49,17 +52,17 @@ export default function OperationResult({ operation, run, score, isLast, onNext 
           {operation.id === 2 && run.bestCombo > 1 && (
             <Stat label="Najduži niz" value={`${run.bestCombo}×`} />
           )}
-          {operation.hasCravings && <Stat label="Želje pogođene" value={`${run.cravingsHit}×`} />}
+          {operation.hasCravings && <Stat label="Aleksej zadovoljen" value={`${run.cravingsHit}×`} />}
           {/* Namjerno se NE prikazuje koliko je puta lagao a koliko bio iskren:
               "zeznuo te" uključuje i klik na njega samog (i njegove šale),
               pa te dvije brojke nisu u odnosu koji se smije sabirati. Ovdje
               stoji samo ono što je igrač uradio. */}
           {operation.id === 4 && <Stat label="Provalila si ga" value={`${run.filipCaught}×`} />}
-          {operation.id === 4 && <Stat label="Zeznuo te" value={`${run.filipFooled}×`} />}
+          {operation.id === 4 && <Stat label="Nadigrao te" value={`${run.filipFooled}×`} />}
           {operation.id === 4 && run.filipTrusted > 0 && (
-            <Stat label="Pomogao ti je" value={`${run.filipTrusted}×`} />
+            <Stat label="Stvarno ti pomogao" value={`${run.filipTrusted}×`} />
           )}
-          {operation.id === 5 && <Stat label="OK si sa Anom" value="DA ❤️" />}
+          {operation.id === 5 && <Stat label="Ok si s Anom" value="DA" />}
         </div>
       </div>
 
@@ -71,7 +74,7 @@ export default function OperationResult({ operation, run, score, isLast, onNext 
 
       {operation.id === 4 && (
         <p className="max-w-xs font-ui text-sm font-medium leading-snug text-cream/80">
-          Preživjela si Filipa. To je već ozbiljan napredak.
+          Preživjela si Filipa. Ne uspijeva svima.
         </p>
       )}
 

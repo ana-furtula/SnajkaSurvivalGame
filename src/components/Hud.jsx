@@ -19,7 +19,7 @@ function CravingBar({ craving, cravingEvery }) {
         <span className="animate-pop text-3xl leading-none">{craving.emoji}</span>
         <div className="min-w-0 flex-1 text-left">
           <div className="font-ui text-[10px] font-black uppercase tracking-[0.16em] text-ink/70">
-            Trenutno se traži
+            Aleksej traži
           </div>
           <div className="truncate font-display text-xl uppercase leading-tight text-ink">
             {craving.name}
@@ -52,8 +52,6 @@ export default function Hud({
   cravingEvery,
   bonks,
   combo,
-  showAnaWarning,
-  showWineNote,
   penalty,
   muted,
   onToggleMute,
@@ -119,7 +117,7 @@ export default function Hud({
       </div>
 
       {/* Red 3: oznake specifične za operaciju */}
-      {(typeof bonks === 'number' || combo >= 3 || showWineNote || showAnaWarning) && (
+      {(typeof bonks === 'number' || combo >= 3) && (
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           {typeof bonks === 'number' && (
             <span className="rounded-md border-2 border-ink bg-blue px-2 py-[2px] font-ui text-[11px] font-black text-cream shadow-sticker">
@@ -132,18 +130,6 @@ export default function Hud({
               combo ×{combo}
             </span>
           )}
-
-          {/* {showWineNote && (
-            <span className="rounded-md border-2 border-ink bg-red px-2 py-[2px] font-ui text-[11px] font-black uppercase text-cream shadow-sticker">
-              🍷 ne diraj
-            </span>
-          )}
-
-          {showAnaWarning && (
-            <span className="animate-blink ml-auto rounded-md border-2 border-ink bg-red px-2 py-[2px] font-ui text-[11px] font-black uppercase tracking-wide text-cream shadow-sticker">
-              ⛔ Ana — ne diraj
-            </span>
-          )} */}
         </div>
       )}
 

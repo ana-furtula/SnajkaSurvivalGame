@@ -113,9 +113,9 @@ export default function FinalScreen({ score, stats, anaAvoided, onReplay }) {
 
         {missedCrown && (
           <p className="w-full rounded-xl border-[3px] border-ink bg-red px-3 py-2 font-ui text-[11px] font-black uppercase leading-snug tracking-wide text-cream">
-            Bodovi su bili za krunu — ali kruna traži čistu partiju.
+            Bodova je bilo za krunu. Ali kruna traži čistu partiju.
             {stats.vino > 0 && ` Vino: ${stats.vino}×.`}
-            {stats.filipFooled > 0 && ` Filip te zeznuo: ${stats.filipFooled}×.`}
+            {stats.filipFooled > 0 && ` Filip te nadigrao: ${stats.filipFooled}×.`}
           </p>
         )}
 
@@ -131,12 +131,12 @@ export default function FinalScreen({ score, stats, anaAvoided, onReplay }) {
 
         <div className="w-full text-left">
           <StatRow label="Matija udaren" value={`${stats.bonks}×`} />
-          <StatRow label="Nićko pomažen" value={`${stats.nicko}×`} />
-          <StatRow label="Želje pogođene" value={`${stats.cravingsHit}×`} />
-          <StatRow label="Vino dotaknuto" value={`${stats.vino}×`} />
-          <StatRow label="Filip te zeznuo" value={`${stats.filipFooled}×`} />
+          <StatRow label="Nićko dobio pažnju" value={`${stats.nicko}×`} />
+          <StatRow label="Aleksej zadovoljen" value={`${stats.cravingsHit}×`} />
+          <StatRow label="Vinu nisi odoljela" value={`${stats.vino}×`} />
+          <StatRow label="Filip te nadigrao" value={`${stats.filipFooled}×`} />
           <StatRow label="Provalila si Filipa" value={`${stats.filipCaught}×`} />
-          <StatRow label="OK si sa Anom" value={anaAvoided ? 'DA' : 'NE'} />
+          <StatRow label="Ok si s Anom" value={anaAvoided ? 'DA' : 'NE'} />
         </div>
 
 
