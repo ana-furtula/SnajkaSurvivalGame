@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Entity from './Entity.jsx';
+import { playSound } from '../audio.js';
 import {
   FOODS,
   MATIJA_IMAGES,
@@ -50,6 +51,29 @@ function toEntity(item) {
 }
 
 /**
+ * Koji zvuk igra pušta za klik na taj element.
+ * Tutorial namjerno koristi ISTE zvukove kao gameplay — tako se uz pravilo
+ * nauči i zvučni signal, pa je kasnije u igri jasno i bez gledanja.
+ */
+function soundForClick(type, failed) {
+  if (failed) return type === 'vino' || type === 'filip' ? 'vino' : 'hranaPogresna';
+
+  switch (type) {
+    case 'matija':
+      return 'bonk';
+    case 'nicko':
+      return 'nicko';
+    case 'hrana':
+      return 'hrana';
+    case 'vino':
+    case 'filip':
+      return 'vino';
+    default:
+      return null;
+  }
+}
+
+/**
  * Kratki interaktivni uvod u mehaniku. Ne pušta dalje dok igrač
  * jednom sam ne uradi ono što se od njega traži.
  */
@@ -64,16 +88,34 @@ export default function Tutorial({ kind, onDone }) {
   const cravingFood = step?.craving ? food(step.craving) : null;
   const done = stepIndex >= script.length;
 
+  // Filipov dolazak ima svoj signal i u igri — neka ga ima i ovdje,
+  // da se nauči da taj zvuk znači "stiže nešto sumnjivo".
+  // Pamti se za koji korak je već odsviran: React u dev modu pokreće
+  // efekte dvaput, pa bi se inače čuo dupli zvuk.
+  const filipSoundAtRef = useRef(-1);
+  useEffect(() => {
+    if (!step?.items?.some((it) => it.type === 'filip')) return;
+    if (filipSoundAtRef.current === stepIndex) return;
+    filipSoundAtRef.current = stepIndex;
+    playSound('filip');
+  }, [step, stepIndex]);
+
   const handleHit = (entity) => {
     if (locked || !step) return;
 
     // Pogrešan klik: kratko objasni i pusti da pokuša ponovo.
     if (entity.id !== step.accept) {
       const reject = step.reject?.[entity.id];
+      playSound(soundForClick(entity.type, true));
       setFeedback({ text: reject ?? 'NE TO — probaj ponovo', tone: 'bad' });
       setTimeout(() => setFeedback(null), 1100);
       return;
     }
+
+    // Korak koji demonstrira promašaj (npr. namjerno pogrešna hrana) nosi
+    // zvuk neuspjeha, iako vodi dalje.
+    const isFailureLesson = step.rewardTone === 'bad';
+    playSound(soundForClick(entity.type, isFailureLesson));
 
     setLocked(true);
     setFeedback({ text: step.reward, tone: step.rewardTone ?? 'good' });
@@ -81,7 +123,12 @@ export default function Tutorial({ kind, onDone }) {
     setTimeout(() => {
       setFeedback(null);
       setLocked(false);
-      setStepIndex((i) => i + 1);
+
+      // Zvuk se pušta OVDJE, a ne unutar setState updatera: React updater
+      // može pozvati dvaput, pa bi se zvuk udvostručio.
+      const next = stepIndex + 1;
+      if (next >= script.length) playSound('combo'); // kratka potvrda na kraju
+      setStepIndex(next);
     }, 1050);
   };
 

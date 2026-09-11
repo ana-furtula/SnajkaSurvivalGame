@@ -373,7 +373,7 @@ export const FILIP_ANA_LINES = [
 // i nijednom te Filip nije zeznuo. Cijela igra je o disciplini, pa neka
 // i kruna bude o njoj, a ne samo o broju tapova.
 export const FINAL_RESULTS = [{
-        min: 140,
+        min: 145,
         clean: true,
         title: 'GLAVNA SI U PORODICI 👑',
         lines: [
