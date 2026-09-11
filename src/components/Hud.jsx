@@ -133,7 +133,7 @@ export default function Hud({
             </span>
           )}
 
-          {showWineNote && (
+          {/* {showWineNote && (
             <span className="rounded-md border-2 border-ink bg-red px-2 py-[2px] font-ui text-[11px] font-black uppercase text-cream shadow-sticker">
               🍷 ne diraj
             </span>
@@ -143,7 +143,7 @@ export default function Hud({
             <span className="animate-blink ml-auto rounded-md border-2 border-ink bg-red px-2 py-[2px] font-ui text-[11px] font-black uppercase tracking-wide text-cream shadow-sticker">
               ⛔ Ana — ne diraj
             </span>
-          )}
+          )} */}
         </div>
       )}
 

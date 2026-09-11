@@ -57,7 +57,7 @@ export default function OperationResult({ operation, run, score, isLast, onNext 
           {operation.id === 4 && <Stat label="Provalila si ga" value={`${run.filipCaught}×`} />}
           {operation.id === 4 && <Stat label="Zeznuo te" value={`${run.filipFooled}×`} />}
           {operation.id === 4 && run.filipTrusted > 0 && (
-            <Stat label="Poslušala ga s razlogom" value={`${run.filipTrusted}×`} />
+            <Stat label="Pomogao ti je" value={`${run.filipTrusted}×`} />
           )}
           {operation.id === 5 && <Stat label="OK si sa Anom" value="DA ❤️" />}
         </div>

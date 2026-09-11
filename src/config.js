@@ -282,7 +282,7 @@ export const OPERATIONS = [{
             '👨 Matija — UDARI',
             '🐶 Nićko — POMAZI',
             '🍕 Hrana — POGODI ŽELJU',
-            '🍷 Vino — NE DIRAJ',
+            '🍷 Vino — NE SMIJEŠ',
             '👨‍🦱 Filip — ŠALI SE, ILI IPAK NE',
             '👩 Ana — NE DIRAJ JE',
         ],
@@ -343,24 +343,21 @@ export const OPERATIONS = [{
 // ---------------------------------------------------------------------------
 
 export const FILIP_LINES = [
-    { kind: 'smjer', side: 'lijevo', text: 'Matija je lijevo, vjeruj mi.' },
-    { kind: 'smjer', side: 'desno', text: 'Matija je desno, kunem se.' },
-    { kind: 'smjer', side: 'desno', text: 'Ja bih na tvom mjestu gledao desno.' },
-    { kind: 'smjer', side: 'lijevo', text: 'Matija je ovaj put baš očigledan — lijevo.' },
-    { kind: 'sala', text: 'Ne diraj Matiju, to je zamka.' },
-    { kind: 'sala', text: 'Klikni mene, znam šta radim.' },
-    { kind: 'sala', text: 'Vjeruj mi.' },
     { kind: 'sala', text: 'Ne znam šta radim ovdje.' },
+    { kind: 'smjer', side: 'lijevo', text: 'Matija je lijevo, vjeruj mi.' },
+    { kind: 'smjer', side: 'desno', text: 'Ja bih na tvom mjestu gledao desno.' },
+    { kind: 'sala', text: 'Ne diraj Matiju, to je zamka.' },
     { kind: 'sala', text: 'Matija je iza tebe.' },
-    { kind: 'sala', text: 'Nemoj kliknuti Matiju.' },
+    { kind: 'sala', text: 'Vjeruj mi.' },
+    { kind: 'smjer', side: 'desno', text: 'Matija je desno, kunem se.' },
+    { kind: 'sala', text: 'Klikni mene, znam šta radim.' },
     { kind: 'sala', text: 'Klikni mene, imam plan.' },
 ];
 
 // Izjave o Ani — samo u završnoj operaciji, kad je Ana u igri.
 export const FILIP_ANA_LINES = [
-    { kind: 'sala', text: 'Ana je lijevo.' },
-    { kind: 'sala', text: 'Ana nije tu.' },
-    { kind: 'sala', text: 'Slobodno klikni, nije Ana.' },
+    { kind: 'sala', text: 'SAD KLIKNI ANU, VJERUJ MI.' },
+    { kind: 'sala', text: 'Nema Ane.' },
     { kind: 'sala', text: 'Ana je desno, vjeruj mi.' },
 ];
 
@@ -369,8 +366,8 @@ export const FILIP_ANA_LINES = [
 // ---------------------------------------------------------------------------
 
 export const FINAL_RESULTS = [{
-        min: 125,
-        title: 'GLAVNA SI U PORODICI. 👑',
+        min: 130,
+        title: 'GLAVNA SI U PORODICI 👑',
         lines: [
             'Matija je naučio ko je glavni.',
             'Filip će morati da smisli neke nove fore.',
@@ -380,8 +377,8 @@ export const FINAL_RESULTS = [{
         closing: 'Dobrodošla. Samo polako s nama. ❤️',
     },
     {
-        min: 91,
-        title: 'ZVANIČNA SNAJKA. ❤️',
+        min: 101,
+        title: 'ZVANIČNA SNAJKA',
         lines: [
             'Matija je dobio svoje.',
             'Filip je pokušao. Nije prošlo.',
@@ -391,7 +388,7 @@ export const FINAL_RESULTS = [{
     },
     {
         min: 61,
-        title: 'OVO VEĆ LIČI NA NEŠTO. 😏',
+        title: 'OVO VEĆ LIČI NA NEŠTO 😏',
         lines: [
             'Matija je stradao.',
             'Filip već smišlja novi plan.',
@@ -401,7 +398,7 @@ export const FINAL_RESULTS = [{
     },
     {
         min: 31,
-        title: 'SOLIDNO. 😌',
+        title: 'SOLIDNO 😌',
         lines: [
             'Nisi pokidala, ali nisi ni zalutala.',
             'Matija je dobio svoje, a Filip još ima nade.',
@@ -410,7 +407,7 @@ export const FINAL_RESULTS = [{
     },
     {
         min: -9999,
-        title: 'DOBRO JE, TEK SI STIGLA.',
+        title: 'DOBRO JE, TEK SI STIGLA',
         lines: [
             'Neke stvari si pogodila.',
             'Neke ćeš morati još malo da pohvataš.',
