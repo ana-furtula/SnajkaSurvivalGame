@@ -384,7 +384,7 @@ export const FILIP_ANA_LINES = [
 // Pragovi su izmjereni, a ne pogođeni: savršena partija nosi oko 158 bodova,
 // pažljiv igrač oko 151, prosječan oko 100. Otud 155 / 130 / 105 / 75.
 export const FINAL_RESULTS = [{
-        min: 155,
+        min: 150,
         clean: true,
         title: 'GLAVNA SI U PORODICI 👑',
         lines: [
